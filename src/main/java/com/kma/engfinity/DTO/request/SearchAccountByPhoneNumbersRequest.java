@@ -1,0 +1,10 @@
+package com.kma.engfinity.DTO.request;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class SearchAccountByPhoneNumbersRequest {
+    private List<String> phoneNumbers;
+}
