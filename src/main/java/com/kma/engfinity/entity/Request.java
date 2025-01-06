@@ -1,6 +1,5 @@
 package com.kma.engfinity.entity;
 
-import com.kma.engfinity.enums.ECrashType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,20 +13,15 @@ import java.util.Date;
 @AllArgsConstructor
 @Setter
 @Getter
-@Table(name = "crashes")
-public class Crash {
+@Table(name = "requests")
+public class Request {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-
-    private String ip;
-
-    private String error;
 
     private String createdBy;
 
     private Date createdAt;
 
-    @Enumerated(EnumType.STRING)
-    private ECrashType type;
+    private String ip;
 }

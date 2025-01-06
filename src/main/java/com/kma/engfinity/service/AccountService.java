@@ -174,4 +174,8 @@ public class AccountService {
         CommonResponse<?> response = new CommonResponse<>(200, account, "Update teacher info successfully!");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    public List<Account> findAll () {
+        return accountRepository.findAll();
+    }
 }
