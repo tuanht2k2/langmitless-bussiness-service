@@ -1,13 +1,13 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.entity.Account;
+import com.kma.common.enums.ERole;
 import com.kma.engfinity.DTO.request.*;
 import com.kma.engfinity.DTO.response.*;
 import com.kma.engfinity.enums.EAccountStatus;
 import com.kma.engfinity.enums.EError;
-import com.kma.engfinity.enums.ERole;
 import com.kma.engfinity.enums.ETransferType;
 import com.kma.engfinity.exception.CustomException;
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.repository.AccountRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;

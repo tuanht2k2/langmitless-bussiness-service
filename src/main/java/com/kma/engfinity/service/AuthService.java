@@ -1,5 +1,6 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.AuthenticationRequest;
 import com.kma.engfinity.DTO.request.EditAccountRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
@@ -7,9 +8,7 @@ import com.kma.engfinity.DTO.response.LoginResponse;
 import com.kma.engfinity.DTO.response.PrivateAccountResponse;
 import com.kma.engfinity.JWT.JWTUtil;
 import com.kma.engfinity.enums.EError;
-import com.kma.engfinity.enums.ERole;
 import com.kma.engfinity.exception.CustomException;
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.repository.AccountRepository;
 import com.nimbusds.jose.*;
 import org.modelmapper.ModelMapper;

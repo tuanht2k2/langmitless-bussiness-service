@@ -1,6 +1,7 @@
 package com.kma.engfinity.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.kma.common.entity.Account;
 import com.kma.engfinity.enums.ERoomStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

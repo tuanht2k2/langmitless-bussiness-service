@@ -1,6 +1,6 @@
 package com.kma.engfinity.config;
 
-import com.kma.engfinity.entity.Account;
+import com.kma.common.entity.Account;
 import com.kma.engfinity.service.AuthService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;

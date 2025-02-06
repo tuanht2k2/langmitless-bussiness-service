@@ -1,8 +1,8 @@
 package com.kma.engfinity.JWT;
 
+import com.kma.common.entity.Account;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.exception.CustomException;
-import com.kma.engfinity.entity.Account;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;

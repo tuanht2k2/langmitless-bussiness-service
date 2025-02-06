@@ -1,6 +1,5 @@
 package com.kma.engfinity.DTO.request;
 
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.enums.EPaymentStatus;
 import com.kma.engfinity.enums.EPaymentType;
 import lombok.Builder;

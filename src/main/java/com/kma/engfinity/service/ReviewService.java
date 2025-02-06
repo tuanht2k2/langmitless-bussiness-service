@@ -1,10 +1,8 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.EditReviewRequest;
-import com.kma.engfinity.DTO.request.SearchReviewRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
-import com.kma.engfinity.DTO.response.ReviewResponse;
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.entity.Review;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.enums.EReviewType;

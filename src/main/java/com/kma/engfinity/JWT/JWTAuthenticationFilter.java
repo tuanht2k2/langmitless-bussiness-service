@@ -1,10 +1,7 @@
 package com.kma.engfinity.JWT;
 
-import com.kma.engfinity.DTO.request.EditRequestLogRequest;
-import com.kma.engfinity.entity.Account;
+import com.kma.common.entity.Account;
 import com.kma.engfinity.repository.AccountRepository;
-import com.kma.engfinity.service.CommonService;
-import com.kma.engfinity.service.RequestService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,17 +24,8 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JWTUtil jwtUtil;
 
-    @Autowired
-    private RequestService requestService;
-
-    @Autowired
-    private CommonService commonService;
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        EditRequestLogRequest logRequest = new EditRequestLogRequest();
-        logRequest.setIp(commonService.getClientIpAddress(request));
-        requestService.create(logRequest);
 
         if (!hasAuthorizationBearer(request)) {
             filterChain.doFilter(request, response);

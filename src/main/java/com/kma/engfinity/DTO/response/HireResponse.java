@@ -1,6 +1,5 @@
 package com.kma.engfinity.DTO.response;
 
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.enums.EHireStatus;
 import lombok.Data;
 

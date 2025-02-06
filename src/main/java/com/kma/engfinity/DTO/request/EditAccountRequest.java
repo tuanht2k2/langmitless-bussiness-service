@@ -1,7 +1,7 @@
 package com.kma.engfinity.DTO.request;
 
-import com.kma.engfinity.enums.EGender;
-import com.kma.engfinity.enums.ERole;
+import com.kma.common.enums.EGender;
+import com.kma.common.enums.ERole;
 import lombok.Builder;
 import lombok.Data;
 

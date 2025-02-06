@@ -1,5 +1,6 @@
 package com.kma.engfinity.entity;
 
+import com.kma.common.entity.Account;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

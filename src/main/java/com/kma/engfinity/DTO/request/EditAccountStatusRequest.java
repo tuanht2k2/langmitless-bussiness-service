@@ -1,6 +1,6 @@
 package com.kma.engfinity.DTO.request;
 
-import com.kma.engfinity.enums.EAccountStatus;
+import com.kma.common.enums.EAccountStatus;
 import lombok.Data;
 
 @Data

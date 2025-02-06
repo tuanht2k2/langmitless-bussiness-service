@@ -1,7 +1,7 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.EditPaymentRequest;
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.entity.Payment;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.enums.EPaymentStatus;

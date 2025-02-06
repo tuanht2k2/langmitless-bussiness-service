@@ -1,9 +1,9 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.WebRTCDto;
 import com.kma.engfinity.DTO.request.EditRoomRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.entity.Hire;
 import com.kma.engfinity.entity.Room;
 import com.kma.engfinity.enums.EError;

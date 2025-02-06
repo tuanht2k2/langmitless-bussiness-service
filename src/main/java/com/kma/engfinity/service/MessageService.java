@@ -1,24 +1,37 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.EditMessageRequest;
+import com.kma.engfinity.DTO.request.SearchMessageRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
 import com.kma.engfinity.DTO.response.MessageResponse;
+import com.kma.engfinity.DTO.response.NotificationResponse;
+import com.kma.engfinity.DTO.response.PublicAccountResponse;
 import com.kma.engfinity.entity.Message;
 import com.kma.engfinity.entity.Messenger;
-import com.kma.engfinity.enums.EMessageType;
+import com.kma.engfinity.enums.EError;
+import com.kma.engfinity.exception.CustomException;
 import com.kma.engfinity.repository.MessageRepository;
+import com.kma.engfinity.repository.MessengerRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class MessageService {
     @Autowired
     MessageRepository messageRepository;
+
+    @Autowired
+    MessengerRepository messengerRepository;
 
     @Autowired
     AuthService authService;
@@ -32,31 +45,52 @@ public class MessageService {
     @Autowired
     CommonService commonService;
 
-    @Autowired
-    MessengerService messengerService;
+    public ResponseEntity<?> create (EditMessageRequest request) {
+        Optional<Messenger> optionalMessenger = messengerRepository.findById(request.getMessengerId());
+        if (optionalMessenger.isEmpty()) throw new CustomException(EError.BAD_REQUEST);
 
-    @Autowired
-    private OpenAIService openAIService;
+        Messenger messenger = optionalMessenger.get();
+        messenger.setUpdatedAt(new Date());
+        messengerRepository.save(messenger);
 
-    public void create(EditMessageRequest request) throws Exception {
-        Message message = mapper.map(request, Message.class);
-        message.setCreatedBy(authService.getCurrentAccount().getId());
-        Message createdMessage = messageRepository.save(message);
-        sendMessageToSocket(createdMessage);
+        Message message = new Message();
+        Account currentAccount = authService.getCurrentAccount();
+        message.setCreatedBy(currentAccount);
+        message.setCreatedAt(new Date());
+        message.setMessenger(messenger);
+        message.setContent(request.getContent());
+        Message createdMessage = messageRepository.save(message); // tạo tin nhắn
 
-        if (request.getType().equals(EMessageType.CHATBOT)) {
-            String answer = openAIService.getOpenAiResponse(request.getContent());
-            Message chatbotMessage = new Message();
-            chatbotMessage.setMessenger(request.getMessenger());
-            chatbotMessage.setContent(answer);
-            Message createdChatbotMessage = messageRepository.save(message);
-            sendMessageToSocket(createdChatbotMessage);
+        String destination = "/topic/messengers/" + request.getMessengerId() + "/messages";
+        messagingTemplate.convertAndSend(destination, messageToMessageResponse(createdMessage)); // lấy đường dẫn: kênh
+
+        Set<Account> members = messenger.getMembers(); // lấy hết người dùng thuộc cuộc trò chuyện
+        for (Account member : members) {
+            if (!member.getId().equals(currentAccount.getId())) {
+                String notificationDes = commonService.getAccountNotificationUrl(member.getId());
+                NotificationResponse notification = new NotificationResponse();
+                String notificationMessage = currentAccount.getName() + " đã gửi tin nhắn";
+                notification.setMessage(notificationMessage);
+                messagingTemplate.convertAndSend(notificationDes, notification);
+            }
         }
+
+        CommonResponse<?> response = new CommonResponse<>(200, null, "Send message successfully!");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    private void sendMessageToSocket (Message message) {
-        MessageResponse response = mapper.map(message, MessageResponse.class);
-        String destination = "/topic/messengers/" + message.getMessenger();
-        messagingTemplate.convertAndSend(destination, response);
+    private MessageResponse messageToMessageResponse (Message message) {
+        MessageResponse messageResponse = mapper.map(message, MessageResponse.class);
+        messageResponse.setMessengerId(message.getMessenger().getId());
+        PublicAccountResponse accountResponse = mapper.map(message.getCreatedBy(), PublicAccountResponse.class);
+        messageResponse.setCreatedBy(accountResponse);
+        return messageResponse;
+    }
+
+    public ResponseEntity<?> search(SearchMessageRequest request) {
+        List<Message> messages = messageRepository.findAllByMessengerIdOrderByCreatedAtAsc(request.getMessengerId());
+        List<MessageResponse> messageResponses = messages.stream().map(this::messageToMessageResponse).toList();
+        CommonResponse<?> response = new CommonResponse<>(200, messageResponses, "Search messages successfully!");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
