@@ -1,11 +1,10 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.EditCrashRequest;
-import com.kma.engfinity.DTO.request.SearchCrashRequest;
 import com.kma.engfinity.DTO.request.StatisticsRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
 import com.kma.engfinity.DTO.response.CrashStatisticsResponse;
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.entity.Crash;
 import com.kma.engfinity.entity.Request;
 import com.kma.engfinity.repository.CrashRepository;

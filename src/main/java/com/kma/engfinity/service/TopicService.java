@@ -1,10 +1,10 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.EditTopicRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
 import com.kma.engfinity.DTO.response.TagResponse;
 import com.kma.engfinity.DTO.response.TopicResponse;
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.entity.Course;
 import com.kma.engfinity.entity.Tag;
 import com.kma.engfinity.entity.Topic;

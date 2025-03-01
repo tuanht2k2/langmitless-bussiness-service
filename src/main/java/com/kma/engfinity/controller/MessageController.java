@@ -17,8 +17,8 @@ public class MessageController {
     @Autowired
     private MessageService messageService;
 
-    @MessageMapping("/messages")
-    public void create (@Payload EditMessageRequest request) throws Exception {
-        messageService.create(request);
-    }
+//    @MessageMapping("/messages")
+//    public void create (@Payload EditMessageRequest request) throws Exception {
+//        messageService.create(request);
+//    }
 }

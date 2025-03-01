@@ -1,6 +1,8 @@
 package com.kma.engfinity.JWT;
 
 import com.kma.common.entity.Account;
+import com.kma.engfinity.enums.EError;
+import com.kma.engfinity.exception.CustomException;
 import com.kma.engfinity.repository.AccountRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -34,7 +36,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         String token = getToken(request);
         if (!jwtUtil.validateToken(token)) {
             filterChain.doFilter(request,response);
-            return;
+            throw new CustomException(EError.UNAUTHENTICATED);
         }
         setAuthenticationContext(token, request);
         filterChain.doFilter(request,response);
@@ -53,7 +55,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     private void setAuthenticationContext (String token, HttpServletRequest request) {
         Account account = getAccount(token);
 
-        UsernamePasswordAuthenticationToken authentication  = new UsernamePasswordAuthenticationToken(account, null , null);
+        UsernamePasswordAuthenticationToken authentication  = new UsernamePasswordAuthenticationToken(account, token , null);
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 

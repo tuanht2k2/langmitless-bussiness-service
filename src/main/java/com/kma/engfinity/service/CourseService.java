@@ -1,18 +1,15 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.BuyCourseRequest;
-import com.kma.engfinity.DTO.request.EditAccountBalanceRequest;
 import com.kma.engfinity.DTO.request.EditCourseRequest;
 import com.kma.engfinity.DTO.request.SearchCourseRequest;
 import com.kma.engfinity.DTO.response.*;
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.entity.Course;
 import com.kma.engfinity.enums.EAccountStatus;
 import com.kma.engfinity.enums.EError;
-import com.kma.engfinity.enums.ETransferType;
 import com.kma.engfinity.exception.CustomException;
 import com.kma.engfinity.repository.CourseRepository;
-import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

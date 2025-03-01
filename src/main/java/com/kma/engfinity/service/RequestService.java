@@ -1,9 +1,7 @@
 package com.kma.engfinity.service;
 
 import com.kma.engfinity.DTO.request.EditRequestLogRequest;
-import com.kma.engfinity.DTO.request.SearchRequestLogRequest;
 import com.kma.engfinity.DTO.request.StatisticsRequest;
-import com.kma.engfinity.entity.Account;
 import com.kma.engfinity.entity.Request;
 import com.kma.engfinity.repository.RequestRepository;
 import org.modelmapper.ModelMapper;

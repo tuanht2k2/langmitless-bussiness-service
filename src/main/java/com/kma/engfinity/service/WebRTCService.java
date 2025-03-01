@@ -35,17 +35,17 @@ public class WebRTCService {
     }
 
     private ResponseEntity<?> handleVideoCall(VideoCallDto request, String successMessage) {
-        Messenger messenger = messengerService.s_get(request.getMessengerId());
-        Account currentAccount = authService.getCurrentAccount();
-        request.setSenderId(currentAccount.getId());
-
-        Set<Account> members = messenger.getMembers();
-        members.stream()
-                .filter(member -> !member.getId().equals(currentAccount.getId()))
-                .forEach(member -> {
-                    String destination = commonService.getMessengerWebRTCUrl(member.getId());
-                    messagingTemplate.convertAndSend(destination, request);
-                });
+//        Messenger messenger = messengerService.s_get(request.getMessengerId());
+//        Account currentAccount = authService.getCurrentAccount();
+//        request.setSenderId(currentAccount.getId());
+//
+//        Set<Account> members = messenger.getMembers();
+//        members.stream()
+//                .filter(member -> !member.getId().equals(currentAccount.getId()))
+//                .forEach(member -> {
+//                    String destination = commonService.getMessengerWebRTCUrl(member.getId());
+//                    messagingTemplate.convertAndSend(destination, request);
+//                });
 
         CommonResponse<?> response = new CommonResponse<>(200, null, successMessage);
         return new ResponseEntity<>(response, HttpStatus.OK);
