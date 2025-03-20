@@ -38,4 +38,18 @@ public interface CourseRepository extends JpaRepository<Course, String> {
             @Param("keyword") String keyword,
             @Param("createdBy") String createdBy
     );
+
+    @Query(value = """
+    SELECT * FROM courses c 
+    WHERE c.language = :language
+    AND (:level IS NULL OR c.level = :level)
+    AND (:minCost IS NULL OR c.cost > :minCost)
+    AND (:maxCost IS NULL OR c.cost <= :maxCost)
+    """, nativeQuery = true)
+    List<Course> aiSearchCourse(
+            @Param("language") String language,
+            @Param("level") Byte level,
+            @Param("minCost") Integer minCost,
+            @Param("maxCost") Integer maxCost
+    );
 }

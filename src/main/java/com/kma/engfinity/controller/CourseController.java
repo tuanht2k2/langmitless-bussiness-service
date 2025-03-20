@@ -1,5 +1,7 @@
 package com.kma.engfinity.controller;
 
+import com.kma.common.dto.request.AiSearchCourseRequest;
+import com.kma.common.dto.response.Response;
 import com.kma.engfinity.DTO.request.EditCourseRequest;
 import com.kma.engfinity.DTO.request.SearchCourseRequest;
 import com.kma.engfinity.service.CourseService;
@@ -26,6 +28,11 @@ public class CourseController {
     @PostMapping("search")
     public ResponseEntity<?> search (@RequestBody SearchCourseRequest request) {
         return courseService.search(request);
+    }
+
+    @PostMapping("ai-search")
+    public Response<Object> aiSearch (@RequestBody AiSearchCourseRequest request) {
+        return courseService.aiSearch(request);
     }
 
     @GetMapping("{id}")

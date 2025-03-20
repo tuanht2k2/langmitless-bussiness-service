@@ -47,5 +47,7 @@ public class Course {
     private Long cost = 0L;
 
     private String language;
+
+    private Byte level;
 }
 

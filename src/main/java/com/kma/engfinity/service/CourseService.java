@@ -1,5 +1,9 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.constant.Constant;
+import com.kma.common.dto.request.AiSearchCourseRequest;
+import com.kma.common.dto.response.CommonCourseResponse;
+import com.kma.common.dto.response.Response;
 import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.BuyCourseRequest;
 import com.kma.engfinity.DTO.request.EditCourseRequest;
@@ -119,6 +123,10 @@ public class CourseService {
         return courseResponse;
     }
 
+    private CommonCourseResponse courseToCommonCourseResponse (Course course) {
+        return modelMapper.map(course, CommonCourseResponse.class);
+    }
+
     public ResponseEntity<?> search (SearchCourseRequest request) {
         List<Object[]> data = courseRepository.search(request.getPage(), request.getPageSize(), request.getKeyword(), request.getCreatedBy());
         List<CourseResponse> courses = data.stream().map(row -> {
@@ -137,5 +145,27 @@ public class CourseService {
 
         CommonResponse<?> commonResponse = new CommonResponse<>(200, courses, "Search courses successfully!");
         return ResponseEntity.ok(commonResponse);
+    }
+
+    public Response<Object> aiSearch (AiSearchCourseRequest request) {
+        Integer maxCost = null;
+        Integer minCost = null;
+        switch (request.getCost()) {
+            case Constant.CoursePrice.CHEAP:
+                maxCost = Constant.CoursePriceValue.CHEAP;
+                break;
+            case Constant.CoursePrice.MEDIUM:
+                maxCost = Constant.CoursePriceValue.MEDIUM;
+                minCost = Constant.CoursePriceValue.CHEAP;
+                break;
+            case Constant.CoursePrice.EXPENSIVE:
+                minCost = Constant.CoursePriceValue.MEDIUM;
+                break;
+            default:
+                maxCost = Constant.CoursePriceValue.FREE;
+        }
+        List<Course> courses = courseRepository.aiSearchCourse(request.getLanguage(), request.getLevel(), minCost, maxCost);
+        List<CommonCourseResponse> courseResponses = courses.stream().map(this::courseToCommonCourseResponse).toList();
+        return Response.getResponse(200, courseResponses, "Search course successfull");
     }
 }

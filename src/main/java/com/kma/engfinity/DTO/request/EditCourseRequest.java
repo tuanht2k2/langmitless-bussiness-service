@@ -9,4 +9,5 @@ public class EditCourseRequest {
     private String language;
     private String description;
     private Long cost;
+    private Byte level;
 }
