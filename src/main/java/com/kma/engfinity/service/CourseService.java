@@ -1,7 +1,9 @@
 package com.kma.engfinity.service;
 
 import com.kma.common.constant.Constant;
+import com.kma.common.dto.request.AiResponse;
 import com.kma.common.dto.request.AiSearchCourseRequest;
+import com.kma.common.dto.response.ChatbotResponse;
 import com.kma.common.dto.response.CommonCourseResponse;
 import com.kma.common.dto.response.Response;
 import com.kma.common.entity.Account;
@@ -10,10 +12,12 @@ import com.kma.engfinity.DTO.request.EditCourseRequest;
 import com.kma.engfinity.DTO.request.SearchCourseRequest;
 import com.kma.engfinity.DTO.response.*;
 import com.kma.engfinity.entity.Course;
+import com.kma.engfinity.entity.Message;
 import com.kma.engfinity.enums.EAccountStatus;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.exception.CustomException;
 import com.kma.engfinity.repository.CourseRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +27,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class CourseService {
     @Autowired
@@ -39,6 +44,9 @@ public class CourseService {
 
     @Autowired
     private TopicService topicService;
+
+    @Autowired
+    private MessageService messageService;
 
     public ResponseEntity<?> create (EditCourseRequest request) {
         Account account = authService.getCurrentAccount();
@@ -148,24 +156,35 @@ public class CourseService {
     }
 
     public Response<Object> aiSearch (AiSearchCourseRequest request) {
-        Integer maxCost = null;
-        Integer minCost = null;
-        switch (request.getCost()) {
-            case Constant.CoursePrice.CHEAP:
-                maxCost = Constant.CoursePriceValue.CHEAP;
-                break;
-            case Constant.CoursePrice.MEDIUM:
-                maxCost = Constant.CoursePriceValue.MEDIUM;
-                minCost = Constant.CoursePriceValue.CHEAP;
-                break;
-            case Constant.CoursePrice.EXPENSIVE:
-                minCost = Constant.CoursePriceValue.MEDIUM;
-                break;
-            default:
-                maxCost = Constant.CoursePriceValue.FREE;
+        try {
+            ChatbotResponse response = new ChatbotResponse();
+            response.setMessage(request.getDialogResponse());
+            if (request.getDialogResponse() == null) {
+                Integer maxCost = null;
+                Integer minCost = null;
+                switch (request.getCost()) {
+                    case Constant.CoursePrice.CHEAP:
+                        maxCost = Constant.CoursePriceValue.CHEAP;
+                        break;
+                    case Constant.CoursePrice.MEDIUM:
+                        maxCost = Constant.CoursePriceValue.MEDIUM;
+                        minCost = Constant.CoursePriceValue.CHEAP;
+                        break;
+                    case Constant.CoursePrice.EXPENSIVE:
+                        minCost = Constant.CoursePriceValue.MEDIUM;
+                        break;
+                    default:
+                        maxCost = Constant.CoursePriceValue.FREE;
+                }
+                List<Course> courses = courseRepository.aiSearchCourse(request.getLanguage(), request.getLevel(), minCost, maxCost);
+                List<CommonCourseResponse> courseResponses = courses.stream().map(this::courseToCommonCourseResponse).toList();
+                response.setCourses(courseResponses);
+            }
+            messageService.sendChatbotMessage(response);
+            return Response.getResponse(200, "Search course successfull");
+        } catch (Exception e) {
+            log.error("An error happened when search course: {}",e.getMessage());
+            return Response.getResponse(500, e.getMessage());
         }
-        List<Course> courses = courseRepository.aiSearchCourse(request.getLanguage(), request.getLevel(), minCost, maxCost);
-        List<CommonCourseResponse> courseResponses = courses.stream().map(this::courseToCommonCourseResponse).toList();
-        return Response.getResponse(200, courseResponses, "Search course successfull");
     }
 }

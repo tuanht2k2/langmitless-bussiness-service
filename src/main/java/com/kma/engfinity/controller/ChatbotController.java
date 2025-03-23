@@ -14,8 +14,8 @@ public class ChatbotController {
     @Resource
     ChatbotService chatbotService;
 
-//    @PostMapping("send-message")
-//    public Response<Object> sendMessage(Object messageObj) {
-//        return chatbotService.sendMessage(messageObj);
+//    @PostMapping("chatbot-listener")
+//    public Response<Object> chatbotListener(Object messageObj) {
+//        return chatbotService.chatbotListener(messageObj);
 //    }
 }

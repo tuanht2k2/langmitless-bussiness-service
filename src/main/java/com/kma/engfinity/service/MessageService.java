@@ -1,30 +1,16 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.dto.response.ChatbotResponse;
 import com.kma.common.entity.Account;
-import com.kma.engfinity.DTO.request.EditMessageRequest;
-import com.kma.engfinity.DTO.request.SearchMessageRequest;
-import com.kma.engfinity.DTO.response.CommonResponse;
-import com.kma.engfinity.DTO.response.MessageResponse;
-import com.kma.engfinity.DTO.response.NotificationResponse;
-import com.kma.engfinity.DTO.response.PublicAccountResponse;
-import com.kma.engfinity.entity.Message;
-import com.kma.engfinity.entity.Messenger;
-import com.kma.engfinity.enums.EError;
-import com.kma.engfinity.exception.CustomException;
 import com.kma.engfinity.repository.MessageRepository;
 import com.kma.engfinity.repository.MessengerRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
+@Slf4j
 @Service
 public class MessageService {
     @Autowired
@@ -93,6 +79,16 @@ public class MessageService {
 //        CommonResponse<?> response = new CommonResponse<>(200, messageResponses, "Search messages successfully!");
 //        return new ResponseEntity<>(response, HttpStatus.OK);
 //    }
+
+    public void sendChatbotMessage (ChatbotResponse chatbotResponse) {
+        try {
+            Account account = authService.getCurrentAccount();
+            String destination = "/topic/messengers/" + account.getId() + "/messages";
+            messagingTemplate.convertAndSend(destination, chatbotResponse);
+        } catch (Exception e) {
+            log.error("An error happened when send chatbot message: {}", e.getMessage());
+        }
+    }
 
 
 }
