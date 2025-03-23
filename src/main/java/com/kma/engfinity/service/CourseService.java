@@ -22,6 +22,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -159,7 +160,7 @@ public class CourseService {
         try {
             ChatbotResponse response = new ChatbotResponse();
             response.setMessage(request.getDialogResponse());
-            if (request.getDialogResponse() == null) {
+            if (ObjectUtils.isEmpty(request.getDialogResponse())) {
                 Integer maxCost = null;
                 Integer minCost = null;
                 switch (request.getCost()) {
@@ -181,7 +182,7 @@ public class CourseService {
                 response.setCourses(courseResponses);
             }
             messageService.sendChatbotMessage(response);
-            return Response.getResponse(200, "Search course successfull");
+            return Response.getResponse(200, response,"Search course successful");
         } catch (Exception e) {
             log.error("An error happened when search course: {}",e.getMessage());
             return Response.getResponse(500, e.getMessage());
