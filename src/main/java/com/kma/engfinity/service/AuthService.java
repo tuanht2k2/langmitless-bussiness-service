@@ -46,10 +46,10 @@ public class AuthService {
 
         try {
             String token = jwtUtil.generateToken(account);
-            PrivateAccountResponse accountResponse = mapper.map(account, PrivateAccountResponse.class);
+//            PrivateAccountResponse accountResponse = mapper.map(account, PrivateAccountResponse.class);
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setToken(token);
-            loginResponse.setData(accountResponse);
+//            loginResponse.setData(accountResponse);
             CommonResponse<LoginResponse> response = new CommonResponse<>(200, loginResponse, "Login successfully!");
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (JOSEException e) {
