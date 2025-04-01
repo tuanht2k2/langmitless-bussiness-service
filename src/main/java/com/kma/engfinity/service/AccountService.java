@@ -83,8 +83,9 @@ public class AccountService {
     }
 
     public ResponseEntity<?> search (SearchAccountRequest request) {
+        Account currentAccount = authService.getCurrentAccount();
         List<Account> accounts = accountRepository.search(request.getPage() * request.getPageSize(), request.getPageSize(), request.getSortBy(), request.getSortDir(), request.getKeyword(), request.getRole().name());
-        List<PublicAccountResponse> accountResponses = accounts.stream().map(this::accountToPublicAccountResponse).toList();
+        List<PublicAccountResponse> accountResponses = accounts.stream().filter(x -> !Objects.equals(x.getId(), currentAccount.getId())).map(this::accountToPublicAccountResponse).toList();
         CommonResponse<?> response = new CommonResponse<>(200, accountResponses, "Search accounts successfully!");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

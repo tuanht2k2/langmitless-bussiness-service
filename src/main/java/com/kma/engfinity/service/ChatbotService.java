@@ -20,7 +20,7 @@ public class ChatbotService {
             return aiServiceProxy.ask(message);
         } catch (Exception e) {
             log.info(e.getMessage());
-            return Response.getResponse(500, e.getMessage());
+            return Response.getResponse(500, "An error has occurred when ask ai: {}", e.getMessage());
         }
     }
 }

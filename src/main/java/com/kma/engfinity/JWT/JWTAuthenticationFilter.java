@@ -29,10 +29,15 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 //        if (!hasAuthorizationBearer(request)) {
-//            throw new CustomException(EError.UNAUTHENTICATED);
+//            filterChain.doFilter(request, response);
+//            return;
 //        }
 
         String token = getToken(request);
+        if (ObjectUtils.isEmpty(token)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         if (!jwtUtil.validateToken(token)) {
             filterChain.doFilter(request,response);
             throw new CustomException(EError.UNAUTHENTICATED);

@@ -83,7 +83,7 @@ public class MessageService {
     public void sendChatbotMessage (ChatbotResponse chatbotResponse) {
         try {
             Account account = authService.getCurrentAccount();
-            String destination = "/topic/messengers/" + account.getId() + "/messages";
+            String destination = "/topic/chatbot/" + account.getId() + "/messages";
             messagingTemplate.convertAndSend(destination, chatbotResponse);
         } catch (Exception e) {
             log.error("An error happened when send chatbot message: {}", e.getMessage());

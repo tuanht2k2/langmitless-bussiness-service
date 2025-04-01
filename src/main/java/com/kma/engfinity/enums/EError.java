@@ -15,7 +15,7 @@ public enum EError {
     UNAUTHORIZED("Account is not authenticated!"),
     ROLE_NOT_FOUND("Role not found!"),
     TOPIC_NOT_EXISTED("User is not existed!"),
-    USER_IN_CALL("User is in a call!"),
+    USER_IN_CALL("Người dùng đang có cuộc gọi khác!"),
     NOT_ENOUGH_MONEY("User don't have enough money!"),
     TAG_NOT_EXISTED("Tag is not existed!"),
     COURSE_NOT_EXISTED("Course is not existed!"),
