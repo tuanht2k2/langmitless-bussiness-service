@@ -19,6 +19,9 @@ public enum EError {
     NOT_ENOUGH_MONEY("User don't have enough money!"),
     TAG_NOT_EXISTED("Tag is not existed!"),
     COURSE_NOT_EXISTED("Course is not existed!"),
+    INVALID_QUESTION_TYPE("Invalid question type"),
+    NOT_FOUND_QUESTION("Not found question"),
+    MEMBER_IN_THIS_COURSE("Member already enrolled in this course"),
     OPEN_API_ERROR("Open API error!");
 
     private final String message;
