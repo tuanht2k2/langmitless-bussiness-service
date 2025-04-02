@@ -60,6 +60,10 @@ public class HireService {
     @Value("${REDIS.CALLING_PREFIX}")
     private String callingPrefix;
 
+//    public HireService () {
+//        redisTemplate = new RedisTemplate<>();
+//    }
+
     public ResponseEntity<?> create (EditHireRequest request) {
         try {
             Account account = authService.getCurrentAccount();
@@ -131,29 +135,23 @@ public class HireService {
         }
     }
 
-    @Scheduled(fixedRate = 5000) // Kiểm tra mỗi 5s
-    public void checkMissedCalls() {
+    public void checkMissedCalls(String redisKey) {
         try {
-            Set<String> keys = redisTemplate.keys(callingPrefix + "*");
-
-            if (!ObjectUtils.isEmpty(keys)) {
-                for (String key : keys) {
-                    if (redisTemplate.getExpire(key) == -2) { // Key đã hết hạn
-                        Object receiver = redisTemplate.opsForValue().get(key);
-                        if (ObjectUtils.isEmpty(receiver)) {
-                            throw new CustomException(EError.BAD_REQUEST);
-                        }
-                        String caller = key.replace(callingPrefix, "");
-                        List<Hire> hires = hireRepository.findByCreatedByAndTeacher(caller, receiver.toString());
-                        Hire hire = hires.stream().findFirst().orElse(null);
-                        if (ObjectUtils.isEmpty(hire)) {
-                            log.error("An error occurred when checkMissedCalls, key: {}", key);
-                            throw new CustomException(EError.BAD_REQUEST);
-                        }
-                        webSocketService.sendData("/topic/users/" + receiver, hire);
-                    }
-                }
+            log.info("expired key: {}", redisKey);
+            Object receiver = redisTemplate.opsForValue().get(redisKey);
+            log.info("Receiver: {}", receiver);
+            if (ObjectUtils.isEmpty(receiver)) {
+                throw new CustomException(EError.BAD_REQUEST);
             }
+            String caller = redisKey.replace(callingPrefix, "");
+            log.info("Caller: {}", caller);
+            List<Hire> hires = hireRepository.findByCreatedByAndTeacher(caller, receiver.toString());
+            Hire hire = hires.stream().findFirst().orElse(null);
+            if (ObjectUtils.isEmpty(hire)) {
+                log.error("An error occurred when checkMissedCalls, key: {}", redisKey);
+                throw new CustomException(EError.BAD_REQUEST);
+            }
+            webSocketService.sendData("/topic/users/" + receiver, hire);
         } catch (Exception e) {
             log.error("An error happened when checkMissedCalls: {}", e.getMessage());
         }
