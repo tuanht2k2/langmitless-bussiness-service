@@ -1,7 +1,9 @@
 package com.kma.engfinity.controller;
 
+import com.kma.engfinity.DTO.request.AssignQuestionToTopicRequest;
 import com.kma.engfinity.DTO.request.CourseQuestionRequest;
 import com.kma.engfinity.DTO.request.QuestionRequest;
+import com.kma.engfinity.DTO.request.TopicRequest;
 import com.kma.engfinity.service.QuestionService;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,5 +60,15 @@ public class QuestionController {
       @RequestParam("content") String content,
       @RequestParam("audioSample") MultipartFile audioSample) {
     return questionService.updatePronunciation(questionId, content, audioSample);
+  }
+
+  @PostMapping("/assign-to-topic")
+  public ResponseEntity<?> assignToTopic(@RequestBody AssignQuestionToTopicRequest request) {
+    return questionService.assignQuestionToTopic(request);
+  }
+  @PostMapping("/by-topic")
+  public ResponseEntity<?> getQuestionsByTopic(@RequestBody TopicRequest request) {
+
+    return questionService.getQuestionsByTopicId(request);
   }
 }

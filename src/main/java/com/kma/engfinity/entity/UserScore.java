@@ -28,15 +28,24 @@ public class UserScore {
   private String id;
 
   @Column(name = "score", nullable = false)
-  private Float score; // Thang điểm 10
+  private Float score;
 
   @Column(name = "answered_text", columnDefinition = "TEXT")
-  private String answeredText; // vocabulary
+  private String answeredText;
 
   @Column(name = "pronunciation_score")
-  private Float pronunciationScore; // pronunciation
+  private Float pronunciationScore;
 
   @CreatedDate
   @Column(name = "created_at", updatable = false, nullable = false)
   private Instant createdAt;
+
+  @Column(name = "user_id" , nullable = false)
+  private String userId;
+
+  @Column(name = "question_id",nullable = false)
+  private String questionId;
+
+
+
 }

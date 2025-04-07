@@ -17,4 +17,6 @@ public interface TopicRepository extends JpaRepository<Topic, String> {
     List<Object[]> getAllByCourseId(
             @Param("courseId") String courseId
     );
+
+    List<Topic> findByCourse(String courseId);
 }

@@ -22,6 +22,7 @@ public enum EError {
     INVALID_QUESTION_TYPE("Invalid question type"),
     NOT_FOUND_QUESTION("Not found question"),
     MEMBER_IN_THIS_COURSE("Member already enrolled in this course"),
+    NOT_FOUND_TOPIC("Not found topic"),
     OPEN_API_ERROR("Open API error!");
 
     private final String message;

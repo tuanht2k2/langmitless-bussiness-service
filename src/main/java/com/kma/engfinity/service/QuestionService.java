@@ -1,21 +1,23 @@
 package com.kma.engfinity.service;
 
-import com.kma.common.entity.Account;
-import com.kma.common.enums.ERole;
+import com.kma.engfinity.DTO.request.AssignQuestionToTopicRequest;
 import com.kma.engfinity.DTO.request.CourseQuestionRequest;
 import com.kma.engfinity.DTO.request.QuestionRequest;
+import com.kma.engfinity.DTO.request.TopicRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
 import com.kma.engfinity.DTO.response.QuestionResponse;
 import com.kma.engfinity.converter.QuestionConverter;
 import com.kma.engfinity.entity.Course;
 import com.kma.engfinity.entity.Question;
 import com.kma.engfinity.entity.QuestionOption;
+import com.kma.engfinity.entity.Topic;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.enums.QuestionType;
 import com.kma.engfinity.exception.CustomException;
 import com.kma.engfinity.repository.CourseRepository;
 import com.kma.engfinity.repository.QuestionOptionRepository;
 import com.kma.engfinity.repository.QuestionRepository;
+import com.kma.engfinity.repository.TopicRepository;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -41,15 +43,18 @@ public class QuestionService {
   private CourseRepository courseRepository;
 
   @Autowired
-  private FileStorageService fileStorageService;
-
-  @Autowired
   private AuthService authService;
 
   @Autowired
   private QuestionOptionRepository questionOptionRepository;
   @Autowired
   private QuestionConverter questionConverter;
+
+  @Autowired
+  private FileService fileService;
+
+  @Autowired
+  private TopicRepository topicRepository;
 
 
   public ResponseEntity<?> createMultipleChoice(QuestionRequest request) {
@@ -95,7 +100,7 @@ public class QuestionService {
     question.setContent(content);
     question.setCourse(course);
 
-    String audioPath = fileStorageService.storeFile(audioSample);
+    String audioPath = fileService.getFileUrl(audioSample);
     question.setAudioSample(audioPath);
 
     question = questionRepository.save(question);
@@ -158,14 +163,38 @@ public class QuestionService {
       throw new CustomException(EError.INVALID_QUESTION_TYPE);
     }
     question.setContent(content);
-    if (audioSample != null && audioSample.isEmpty()) {
-      String audioPath = fileStorageService.storeFile(audioSample);
+    if (audioSample != null && !audioSample.isEmpty()) {
+      String audioPath = fileService.getFileUrl(audioSample);
       question.setAudioSample(audioPath);
     }
     questionRepository.save(question);
     return ResponseEntity.ok(QuestionConverter.toResponse(question));
   }
 
+  public ResponseEntity<?> assignQuestionToTopic(AssignQuestionToTopicRequest request){
+    Topic topic = topicRepository.findById(request.getTopicId())
+        .orElseThrow(() -> new CustomException(EError.NOT_FOUND_TOPIC));
+    List<Question> questions = questionRepository.findAllById(request.getQuestionIds());
+    if (questions.size() != request.getQuestionIds().size()) {
+      throw new CustomException(EError.NOT_FOUND_QUESTION);
+    }
+
+    for (Question question : questions) {
+      question.setTopicId(topic.getId());
+    }
+    questionRepository.saveAll(questions);
+    CommonResponse<?> response = new CommonResponse<>(200,"","Add question to topic successfully");
+    return ResponseEntity.ok(response);
+  }
+  public ResponseEntity<?> getQuestionsByTopicId(TopicRequest request) {
+    authService.verifyTeacherRole();
+    if (request.getTopicId() == null) {
+      throw new IllegalArgumentException("topicId không được để trống");
+    }
+    List<Question> questions = questionRepository.findByTopicId(request.getTopicId());
+    CommonResponse<?> response = new CommonResponse<>(200,questions,"Add question to topic successfully");
+    return ResponseEntity.ok(response);
+  }
 }
 
 

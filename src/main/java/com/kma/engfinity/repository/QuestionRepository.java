@@ -2,6 +2,8 @@ package com.kma.engfinity.repository;
 
 import com.kma.engfinity.entity.Question;
 import com.kma.engfinity.enums.QuestionType;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +18,10 @@ public interface QuestionRepository extends JpaRepository<Question, String> {
       + "(:questionType is null or q.questionType = :questionType)")
   Page<Question> searchQuestion(@Param("courseId") String courseId, @Param("questionType")
   QuestionType questionType, Pageable pageable);
+
+  @NotNull
+  List<Question> findAllById(@NotNull Iterable<String> ids);
+
+  List<Question> findByTopicId(String topicId);
+
 }
