@@ -21,9 +21,9 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
-            String expiredKey = message.toString();
-            log.info("🔥 Key expired: {}", expiredKey);
-            redisExpiredService.checkMissedCalls(expiredKey);
+            String expired = message.toString();
+            log.info("expired: {}", expired);
+            redisExpiredService.checkMissedCalls(expired);
         } catch (Exception e) {
             log.error("An error occurred when checking key expired", e);
         }

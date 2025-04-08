@@ -60,7 +60,7 @@ public class MomoPaymentService {
             String orderId = PARTNER_CODE + System.currentTimeMillis();
             String requestType = "payWithMethod";
             String ipnUrl = NGROK_URL;
-            String redirectUrl = "https://www.facebook.com/";
+            String redirectUrl = "";
             String rawSignature = "accessKey=" + ACCESS_KEY +
                     "&amount=" + request.getAmount() +
                     "&extraData=" + "Engfinity" +

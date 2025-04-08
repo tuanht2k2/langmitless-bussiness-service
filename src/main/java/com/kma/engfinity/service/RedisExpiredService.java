@@ -12,7 +12,7 @@ public class RedisExpiredService implements RedisExpiredServiceInterface {
     }
 
     @Override
-    public void checkMissedCalls(String redisKey) {
-        hireService.checkMissedCalls(redisKey);
+    public void checkMissedCalls(String expired) {
+        hireService.checkMissedCalls(expired);
     }
 }

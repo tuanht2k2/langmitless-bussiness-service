@@ -26,12 +26,9 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory) {
+    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory, RedisExpiredService redisExpiredService) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-
-        HireService hireService = new HireService();
-        RedisExpiredService redisExpiredService = new RedisExpiredService(hireService);
 
         container.addMessageListener(new RedisKeyExpirationListener(container, redisExpiredService), new PatternTopic("__keyevent@0__:expired"));
         return container;

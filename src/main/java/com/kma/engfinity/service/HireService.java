@@ -2,14 +2,13 @@ package com.kma.engfinity.service;
 
 import com.kma.common.dto.response.Response;
 import com.kma.common.entity.Account;
-import com.kma.common.enums.EAccountStatus;
+import com.kma.engfinity.DTO.request.EditAccountBalanceRequest;
 import com.kma.engfinity.DTO.request.EditHireRequest;
-import com.kma.engfinity.DTO.request.EditRoomRequest;
+import com.kma.engfinity.DTO.request.EditMultiAccountBalanceRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
 import com.kma.engfinity.DTO.response.HireResponse;
 import com.kma.engfinity.DTO.response.PublicAccountResponse;
 import com.kma.engfinity.entity.Hire;
-import com.kma.engfinity.entity.Room;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.enums.EHireStatus;
 import com.kma.engfinity.exception.CustomException;
@@ -20,14 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -60,10 +56,6 @@ public class HireService {
     @Value("${REDIS.CALLING_PREFIX}")
     private String callingPrefix;
 
-//    public HireService () {
-//        redisTemplate = new RedisTemplate<>();
-//    }
-
     public ResponseEntity<?> create (EditHireRequest request) {
         try {
             Account account = authService.getCurrentAccount();
@@ -82,16 +74,18 @@ public class HireService {
             }
 
             checkIsUserBusy(account.getId(), request.getTeacherId());
-            setCallStatus(account.getId(), request.getTeacherId(), callingPrefix);
 
             Hire hire = modelMapper.map(request, Hire.class);
             hire.setCreatedBy(account);
             hire.setTeacher(teacher);
             hire.setCost(cost);
+            hire.setStatus(EHireStatus.PENDING);
+            hire.setTotalTime(request.getTotalTime() * 3600);
             Hire createdHire = hireRepository.save(hire);
             HireResponse hireResponse = modelMapper.map(hire, HireResponse.class);
             String destination = "/topic/teachers/" + request.getTeacherId();
             webSocketService.sendData(destination, hireResponse);
+            setCallStatus(account.getId(), request.getTeacherId(), callingPrefix);
             CommonResponse<?> response = new CommonResponse<>(200, createdHire, "Create hire successfully!");
             return ResponseEntity.ok(response);
         } catch (CustomException e) {
@@ -103,28 +97,37 @@ public class HireService {
         }
     }
 
+    @Transactional
     public ResponseEntity<?> updateStatus (EditHireRequest request) {
         try {
-            Account account = authService.getCurrentAccount();
             Optional<Hire> optionalHire = hireRepository.findById(request.getId());
             if (optionalHire.isEmpty()) throw new CustomException(EError.BAD_REQUEST);
             clearCallCache();
             Hire hire = optionalHire.get();
+            if (hire.getStatus().equals(EHireStatus.ENDED)) throw new CustomException(EError.CALL_ENDED);
             hire.setStatus(request.getStatus());
             if (request.getStatus().equals(EHireStatus.ACCEPTED)) {
-                EditRoomRequest editRoomRequest = new EditRoomRequest();
-                editRoomRequest.setHireId(hire.getId());
-                editRoomRequest.setExpectedCallDuration(request.getTotalTime());
-                Room createdRoom = roomService.create(editRoomRequest);
-                hire.setRoom(createdRoom);
-                setCallStatus(account.getId(), request.getTeacherId(), inCallPrefix);
+                setCallStatus(hire.getCreatedBy().getId(), hire.getTeacher().getId(), inCallPrefix);
             }
+
+            if (request.getStatus().equals(EHireStatus.ENDED)) {
+                Float actualTime = (float) ((new Date().getTime() - hire.getCreatedAt().getTime())/1000);
+                hire.setActualTime(actualTime);
+                if (actualTime >= hire.getTotalTime()/3) {
+                    EditMultiAccountBalanceRequest balanceRequest = new EditMultiAccountBalanceRequest();
+                    balanceRequest.setBalance(hire.getCost());
+                    balanceRequest.setSenderIds(Arrays.asList(hire.getCreatedBy().getId()));
+                    balanceRequest.setReceiverIds(Arrays.asList(hire.getTeacher().getId()));
+                    accountService.updateMultiAccountBalance(balanceRequest);
+                }
+            }
+
             HireResponse hireResponse = modelMapper.map(hire, HireResponse.class);
             hireResponse.setTeacher(modelMapper.map(hireResponse.getTeacher(), PublicAccountResponse.class));
             hireResponse.setCreatedBy(modelMapper.map(hireResponse.getCreatedBy(), PublicAccountResponse.class));
-            String destination = "/topic/teachers/" + request.getTeacherId();
+            String destination = "/topic/teachers/" + hire.getTeacher().getId();
             webSocketService.sendData(destination, hire);
-
+            hireRepository.save(hire);
             CommonResponse<?> response = new CommonResponse<>(200, hireResponse, "Update status successfully!");
             return ResponseEntity.ok(response);
         } catch (CustomException e) {
@@ -135,29 +138,39 @@ public class HireService {
         }
     }
 
-    public void checkMissedCalls(String redisKey) {
+    public void checkMissedCalls(String expired) {
         try {
-            log.info("expired key: {}", redisKey);
-            Object receiver = redisTemplate.opsForValue().get(redisKey);
+            String[] split = expired.split("calling:");
+            String receiver = split[split.length - 1];
             log.info("Receiver: {}", receiver);
             if (ObjectUtils.isEmpty(receiver)) {
                 throw new CustomException(EError.BAD_REQUEST);
             }
-            String caller = redisKey.replace(callingPrefix, "");
-            log.info("Caller: {}", caller);
-            List<Hire> hires = hireRepository.findByCreatedByAndTeacher(caller, receiver.toString());
+            List<Hire> hires = hireRepository.findByTeacher(receiver);
             Hire hire = hires.stream().findFirst().orElse(null);
-            if (ObjectUtils.isEmpty(hire)) {
-                log.error("An error occurred when checkMissedCalls, key: {}", redisKey);
-                throw new CustomException(EError.BAD_REQUEST);
+            if (!ObjectUtils.isEmpty(hire) && hire.getStatus().equals(EHireStatus.PENDING)) {
+                hire.setStatus(EHireStatus.REJECTED);
+                hireRepository.saveAndFlush(hire);
+                webSocketService.sendData("/topic/teachers/" + receiver, hire);
             }
-            webSocketService.sendData("/topic/users/" + receiver, hire);
         } catch (Exception e) {
             log.error("An error happened when checkMissedCalls: {}", e.getMessage());
         }
     }
 
-    public void clearCallCache () {
+    public Response<Object> getDetail (String id) {
+        try {
+            HireResponse hire = hireRepository.getDetail(id);
+            if (ObjectUtils.isEmpty(hire)) {
+                throw new CustomException(EError.BAD_REQUEST);
+            }
+            return Response.getResponse(200, hire, "Get data successfully!");
+        } catch (Exception e) {
+            return Response.getResponse(500, e.getMessage());
+        }
+    }
+
+    private void clearCallCache () {
         try {
             Account caller = authService.getCurrentAccount();
             Object receiver = redisTemplate.opsForValue().get(inCallPrefix + caller.getId());
@@ -190,6 +203,7 @@ public class HireService {
     private void setCallStatus (String callerId, String receiverId, String prefix) {
         try {
             if (prefix.equals(inCallPrefix)) {
+                log.info("Set in call key: Caller: {}, Receiver: {}", callerId, receiverId);
                 redisTemplate.opsForValue().set(prefix + callerId, receiverId);
                 redisTemplate.opsForValue().set(prefix + receiverId, callerId);
             } else {
