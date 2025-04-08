@@ -2,6 +2,7 @@ package com.kma.engfinity.service;
 
 import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.EditTopicRequest;
+import com.kma.engfinity.DTO.request.GetTopicsRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
 import com.kma.engfinity.DTO.response.TagResponse;
 import com.kma.engfinity.DTO.response.TopicResponse;
@@ -54,8 +55,8 @@ public class TopicService {
         return ResponseEntity.ok(response);
     }
 
-    public List<TopicResponse> getAllByCourseId(String courseId) {
-        List<Object[]> data = topicRepository.getAllByCourseId(courseId);
+    public List<TopicResponse> getAllByCourseId(GetTopicsRequest request) {
+        List<Object[]> data = topicRepository.getAllByCourseId(request.getCourseId());
         return data.stream().map(row -> {
             TopicResponse topic = new TopicResponse();
             TagResponse tag = new TagResponse();
@@ -70,5 +71,13 @@ public class TopicService {
 
     public TopicResponse topicToTopicResponse(Topic topic) {
         return modelMapper.map(topic, TopicResponse.class);
+    }
+
+    public ResponseEntity<?> getAllTopics(GetTopicsRequest request) {
+        if (request.getCourseId() != null && !request.getCourseId().isEmpty()) {
+             topicRepository.findByCourse(request.getCourseId());
+        }
+        CommonResponse<?> commonResponse = new CommonResponse<>(200, topicRepository.findAll(),"Get All Topics By Course Successfully");
+        return ResponseEntity.ok(commonResponse);
     }
 }

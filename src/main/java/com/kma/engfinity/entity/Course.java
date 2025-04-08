@@ -1,6 +1,7 @@
 package com.kma.engfinity.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,5 +50,6 @@ public class Course {
     private String language;
 
     private Byte level;
+
 }
 

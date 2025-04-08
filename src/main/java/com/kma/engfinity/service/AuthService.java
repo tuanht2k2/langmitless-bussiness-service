@@ -1,6 +1,7 @@
 package com.kma.engfinity.service;
 
 import com.kma.common.entity.Account;
+import com.kma.common.enums.ERole;
 import com.kma.engfinity.DTO.request.AuthenticationRequest;
 import com.kma.engfinity.DTO.request.EditAccountRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
@@ -46,10 +47,10 @@ public class AuthService {
 
         try {
             String token = jwtUtil.generateToken(account);
-            PrivateAccountResponse accountResponse = mapper.map(account, PrivateAccountResponse.class);
+//            PrivateAccountResponse accountResponse = mapper.map(account, PrivateAccountResponse.class);
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setToken(token);
-            loginResponse.setData(accountResponse);
+//            loginResponse.setData(accountResponse);
             CommonResponse<LoginResponse> response = new CommonResponse<>(200, loginResponse, "Login successfully!");
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (JOSEException e) {
@@ -72,5 +73,12 @@ public class AuthService {
         if (accountRepository.existsByEmail(request.getEmail())) throw new CustomException(EError.EXISTED_BY_EMAIL);
         CommonResponse<?> response = new CommonResponse<>(200, true, "Info is valid!");
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    public void verifyTeacherRole() {
+        Account account = getCurrentAccount();
+        if (account == null || !account.getRole().equals(ERole.TEACHER)) {
+            throw new CustomException(EError.UNAUTHORIZED);
+        }
     }
 }

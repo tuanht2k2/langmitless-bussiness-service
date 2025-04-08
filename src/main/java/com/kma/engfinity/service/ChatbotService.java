@@ -13,19 +13,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class ChatbotService {
     @Resource
-    SimpMessagingTemplate messagingTemplate;
+    AiServiceProxy aiServiceProxy;
 
-    @Resource
-    AuthService authService;
-
-//    public Response<Object> sendMessage (EditMessageRequest request) {
-//        try {
-//            Account account = authService.getCurrentAccount();
-//            String destination = "/topic/messengers/" + account.getId() + "/messages";
-//            messagingTemplate.convertAndSend("/topic/chat", input);
-//        } catch (Exception e) {
-//            log.info(e.getMessage());
-//            return Response.getResponse(500, e.getMessage());
-//        }
-//    }
+    public Response<Object> ask (String message) {
+        try {
+            return aiServiceProxy.ask(message);
+        } catch (Exception e) {
+            log.info(e.getMessage());
+            return Response.getResponse(500, "An error has occurred when ask ai: {}", e.getMessage());
+        }
+    }
 }

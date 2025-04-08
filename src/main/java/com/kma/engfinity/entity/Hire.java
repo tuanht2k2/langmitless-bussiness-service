@@ -47,7 +47,9 @@ public class Hire {
 
     private Long cost;
 
-    private Byte totalTime;
+    private Integer totalTime;
+
+    private Float actualTime;
 
     @Enumerated(EnumType.STRING)
     private EHireStatus status;

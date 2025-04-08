@@ -1,6 +1,7 @@
 package com.kma.engfinity.controller;
 
 import com.kma.engfinity.DTO.request.EditTopicRequest;
+import com.kma.engfinity.DTO.request.GetTopicsRequest;
 import com.kma.engfinity.service.TopicService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,4 +25,9 @@ public class TopicController {
 //    public ResponseEntity<?> search (@RequestBody SearchTopicRequest request) {
 //        return topicService.search(request);
 //    }
+
+    @PostMapping("get-all")
+    public ResponseEntity<?> getAllByCourseId (@RequestBody GetTopicsRequest request) {
+        return topicService.getAllTopics(request);
+    }
 }
