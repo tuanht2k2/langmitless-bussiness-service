@@ -24,7 +24,6 @@ public enum EError {
     MEMBER_IN_THIS_COURSE("Member already enrolled in this course"),
     NOT_FOUND_TOPIC("Not found topic"),
     OPEN_API_ERROR("Open API error!"),
-    OPEN_API_ERROR("Open API error!"),
     CALL_ENDED("Cuộc gọi đã kết thúc!");
 
     private final String message;
