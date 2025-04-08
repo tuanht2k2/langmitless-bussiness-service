@@ -28,12 +28,16 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+//        if (!hasAuthorizationBearer(request)) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
 
-        if (!hasAuthorizationBearer(request)) {
+        String token = getToken(request);
+        if (ObjectUtils.isEmpty(token)) {
             filterChain.doFilter(request, response);
             return;
         }
-        String token = getToken(request);
         if (!jwtUtil.validateToken(token)) {
             filterChain.doFilter(request,response);
             throw new CustomException(EError.UNAUTHENTICATED);
@@ -43,13 +47,21 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean hasAuthorizationBearer(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
+        String header = request.getHeader("c");
         return !ObjectUtils.isEmpty(header) && header.startsWith("Bearer");
     }
 
     private String getToken (HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        return header.split(" ")[1].trim();
+
+//        String header = request.getHeader("Authorization");
+//        return header.split(" ")[1].trim();
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            return token.substring(7);
+        }
+
+        String tokenFromParam = request.getParameter("token");
+        return (tokenFromParam != null && !tokenFromParam.isEmpty()) ? tokenFromParam : null;
     }
 
     private void setAuthenticationContext (String token, HttpServletRequest request) {

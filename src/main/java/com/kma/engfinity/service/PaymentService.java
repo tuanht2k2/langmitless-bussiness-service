@@ -9,12 +9,15 @@ import com.kma.engfinity.enums.EPaymentType;
 import com.kma.engfinity.exception.CustomException;
 import com.kma.engfinity.repository.AccountRepository;
 import com.kma.engfinity.repository.PaymentRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.Date;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class PaymentService {
     @Autowired
@@ -36,7 +39,11 @@ public class PaymentService {
         payment.setId(request.getId());
         payment.setAmount(request.getAmount());
         payment.setType(request.getType());
-        payment.setStatus(EPaymentStatus.INIT);
+        if (ObjectUtils.isEmpty(request.getStatus())) {
+            payment.setStatus(EPaymentStatus.INIT);
+        } else {
+            payment.setStatus(request.getStatus());
+        }
         payment.setCreatedAt(new Date());
         if (request.getType().equals(EPaymentType.TRANSFER)) {
             Optional<Account> receiver = accountRepository.findById(request.getReceiver());

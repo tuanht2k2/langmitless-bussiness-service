@@ -1,5 +1,6 @@
 package com.kma.engfinity.controller;
 
+import com.kma.common.dto.response.Response;
 import com.kma.engfinity.DTO.request.EditHireRequest;
 import com.kma.engfinity.service.HireService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,5 +21,10 @@ public class HireController {
     @PutMapping
     public ResponseEntity<?> updateStatus (@RequestBody EditHireRequest request) {
         return hireService.updateStatus(request);
+    }
+
+    @GetMapping("{id}")
+    public Response<Object> getDetails (@PathVariable("id") String id) {
+        return hireService.getDetail(id);
     }
 }
