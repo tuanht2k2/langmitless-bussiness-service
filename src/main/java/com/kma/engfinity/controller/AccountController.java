@@ -1,5 +1,6 @@
 package com.kma.engfinity.controller;
 
+import com.kma.common.dto.response.Response;
 import com.kma.engfinity.DTO.request.*;
 import com.kma.engfinity.DTO.response.CommonResponse;
 import com.kma.engfinity.service.AccountService;
@@ -56,6 +57,11 @@ public class AccountController {
     @PutMapping("teachers")
     public ResponseEntity<?> updateTeacherInfo (@RequestBody EditTeacherRequest request) {
         return accountService.updateTeacherInfo(request);
+    }
+
+    @PostMapping("find-by-phone")
+    public Response<Object> findByPhone (@RequestBody SearchAccountByPhoneNumbersRequest request) {
+        return accountService.getByPhoneNumber(request.getPhoneNumbers().getFirst());
     }
 
 }

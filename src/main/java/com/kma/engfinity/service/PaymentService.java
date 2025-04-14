@@ -1,6 +1,7 @@
 package com.kma.engfinity.service;
 
 import com.kma.common.entity.Account;
+import com.kma.engfinity.DTO.request.EditMultiAccountBalanceRequest;
 import com.kma.engfinity.DTO.request.EditPaymentRequest;
 import com.kma.engfinity.entity.Payment;
 import com.kma.engfinity.enums.EError;
@@ -12,8 +13,10 @@ import com.kma.engfinity.repository.PaymentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 
@@ -29,6 +32,10 @@ public class PaymentService {
     @Autowired
     AuthService authService;
 
+    @Autowired
+    AccountService accountService;
+
+    @Transactional
     public Payment create (EditPaymentRequest request) {
         Account currentAccount = authService.getCurrentAccount();
 
@@ -49,6 +56,13 @@ public class PaymentService {
             Optional<Account> receiver = accountRepository.findById(request.getReceiver());
             if (receiver.isEmpty()) throw new CustomException(EError.USER_NOT_EXISTED);
             payment.setReceiver(receiver.get());
+        }
+        if (payment.getStatus().equals(EPaymentStatus.DONE) && !ObjectUtils.isEmpty(payment.getReceiver())) {
+            EditMultiAccountBalanceRequest balanceRequest = new EditMultiAccountBalanceRequest();
+            balanceRequest.setBalance(payment.getAmount());
+            balanceRequest.setSenderIds(Arrays.asList(payment.getCreatedBy().getId()));
+            balanceRequest.setReceiverIds(Arrays.asList(payment.getReceiver().getId()));
+            accountService.updateMultiAccountBalance(balanceRequest);
         }
         return paymentRepository.save(payment);
     }

@@ -1,6 +1,7 @@
 package com.kma.engfinity.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kma.common.dto.response.Response;
 import com.kma.common.entity.Account;
 import com.kma.common.enums.ERole;
 import com.kma.engfinity.DTO.request.*;
@@ -19,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.*;
@@ -218,5 +221,14 @@ public class AccountService {
         return accountRepository.findAll();
     }
 
-
+    public Response<Object> getByPhoneNumber (String phoneNumber) {
+        try {
+            PublicAccountResponse account = accountRepository.findPublicInfoByPhoneNumber(phoneNumber);
+            if (ObjectUtils.isEmpty(account)) throw new CustomException(EError.USER_NOT_EXISTED);
+            return Response.getResponse(200, account, "Get account successfully!");
+        } catch (Exception e) {
+            log.error("An error occurred when getByPhoneNumber: {}", e.getMessage());
+            return Response.getResponse(500, e.getMessage());
+        }
+    }
 }
