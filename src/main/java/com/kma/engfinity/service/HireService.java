@@ -2,7 +2,6 @@ package com.kma.engfinity.service;
 
 import com.kma.common.dto.response.Response;
 import com.kma.common.entity.Account;
-import com.kma.engfinity.DTO.request.EditAccountBalanceRequest;
 import com.kma.engfinity.DTO.request.EditHireRequest;
 import com.kma.engfinity.DTO.request.EditMultiAccountBalanceRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;

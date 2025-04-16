@@ -20,6 +20,7 @@ import java.util.Date;
 @Table(name = "payments")
 public class Payment {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @CreatedDate
