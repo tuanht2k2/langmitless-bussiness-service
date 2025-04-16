@@ -1,6 +1,7 @@
 package com.kma.engfinity.repository;
 
 import com.kma.common.entity.Account;
+import com.kma.engfinity.DTO.response.PublicAccountResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -43,12 +44,6 @@ public interface AccountRepository extends JpaRepository<Account, String> {
 
     boolean existsByIdentification(String identification);
 
-//    @Transactional
-//    @Modifying
-//    @Query(value = "UPDATE Account a SET a.balance = a.balance - :value WHERE a.id IN :accountIds")
-//    void updateBalance(@Param("accountIds") String[] accountIds, @Param("value") Long value);
-
-//    @Transactional
     @Modifying
     @Query(value = """
     UPDATE accounts
@@ -61,4 +56,7 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     void updateBalance(@Param("accountIds") List<String> accountIds,
                        @Param("value") Long value,
                        @Param("isAddition") boolean isAddition);
+
+    @Query("SELECT new com.kma.engfinity.DTO.response.PublicAccountResponse(a.id, a.name, a.phoneNumber, a.profileImage) FROM Account a WHERE a.phoneNumber = :phoneNumber")
+    PublicAccountResponse findPublicInfoByPhoneNumber(@Param("phoneNumber") String phoneNumber);
 }
