@@ -1,5 +1,6 @@
 package com.kma.engfinity.DTO.response;
 
+import com.kma.engfinity.entity.Hire;
 import com.kma.engfinity.enums.EAccountStatus;
 import com.kma.engfinity.enums.EGender;
 import com.kma.engfinity.enums.ERole;
@@ -23,6 +24,7 @@ public class PublicAccountResponse {
     private EAccountStatus status;
     private Long cost;
     private String phoneNumber;
+    private List<Hire> hireHistory;
 
     public PublicAccountResponse(String id, String name, String phoneNumber, String profileImage) {
         this.id = id;

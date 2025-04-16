@@ -5,6 +5,7 @@ import com.kma.engfinity.DTO.request.EditPaymentRequest;
 import com.kma.engfinity.entity.Payment;
 import com.kma.engfinity.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ public class TransferController {
     @PostMapping("create")
     Response<Object> createTransfer (@RequestBody EditPaymentRequest request) {
         Payment payment = paymentService.create(request);
-        return Response.getResponse(200, payment, "Transfer created successfully");
+        Boolean success = ObjectUtils.isEmpty(payment) ? false : true;
+        return Response.getResponse(success ? 200 : 500, payment, success ? "Transfer created successfully" : "Transfer created failed");
     }
 }

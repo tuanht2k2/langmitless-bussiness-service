@@ -6,4 +6,9 @@ public class Constant {
         public static String OTP_SUCCESS = "SUCCESS";
         public static String OTP_BLOCKED = "BLOCKED";
     }
+
+    public static class HireType {
+        public static String HIRE = "HIRE";
+        public static String HIRED = "HIRED";
+    }
 }

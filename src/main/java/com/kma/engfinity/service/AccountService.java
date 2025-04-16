@@ -6,11 +6,13 @@ import com.kma.common.entity.Account;
 import com.kma.common.enums.ERole;
 import com.kma.engfinity.DTO.request.*;
 import com.kma.engfinity.DTO.response.*;
+import com.kma.engfinity.entity.Hire;
 import com.kma.engfinity.enums.EAccountStatus;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.enums.ETransferType;
 import com.kma.engfinity.exception.CustomException;
 import com.kma.engfinity.repository.AccountRepository;
+import com.kma.engfinity.repository.HireRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -42,6 +44,9 @@ public class AccountService {
 
     @Autowired
     AuthService authService;
+
+    @Autowired
+    HireRepository hireRepository;
 
     @Autowired
     WebSocketService webSocketService;
@@ -226,6 +231,22 @@ public class AccountService {
             PublicAccountResponse account = accountRepository.findPublicInfoByPhoneNumber(phoneNumber);
             if (ObjectUtils.isEmpty(account)) throw new CustomException(EError.USER_NOT_EXISTED);
             return Response.getResponse(200, account, "Get account successfully!");
+        } catch (Exception e) {
+            log.error("An error occurred when getByPhoneNumber: {}", e.getMessage());
+            return Response.getResponse(500, e.getMessage());
+        }
+    }
+
+    public Response<Object> searchHireHistory (SearchHireHistoryRequest request) {
+        try {
+            Account account = accountRepository.findById(request.getAccountId()).orElse(null);
+            if (ObjectUtils.isEmpty(account)) throw new CustomException(EError.USER_NOT_EXISTED);
+
+            List<Hire> hires = hireRepository.findByTeacher(request.getAccountId());
+            PublicAccountResponse response = objectMapper.convertValue(account, PublicAccountResponse.class);
+            response.setHireHistory(hires);
+
+            return Response.getResponse(200, response, "Get account successfully!");
         } catch (Exception e) {
             log.error("An error occurred when getByPhoneNumber: {}", e.getMessage());
             return Response.getResponse(500, e.getMessage());

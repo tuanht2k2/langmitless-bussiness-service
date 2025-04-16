@@ -37,34 +37,40 @@ public class PaymentService {
 
     @Transactional
     public Payment create (EditPaymentRequest request) {
-        Account currentAccount = authService.getCurrentAccount();
+        try {
+            Account currentAccount = authService.getCurrentAccount();
 
-        Payment payment = new Payment();
-        payment.setCreatedBy(currentAccount);
-        payment.setAmount(request.getAmount());
-        payment.setDescription(request.getDescription());
-        payment.setId(request.getId());
-        payment.setAmount(request.getAmount());
-        payment.setType(request.getType());
-        if (ObjectUtils.isEmpty(request.getStatus())) {
-            payment.setStatus(EPaymentStatus.INIT);
-        } else {
-            payment.setStatus(request.getStatus());
+            Payment payment = new Payment();
+            payment.setCreatedBy(currentAccount);
+            payment.setAmount(request.getAmount());
+            payment.setDescription(request.getDescription());
+            payment.setId(request.getId());
+            payment.setAmount(request.getAmount());
+            payment.setType(request.getType());
+            if (ObjectUtils.isEmpty(request.getStatus())) {
+                payment.setStatus(EPaymentStatus.INIT);
+            } else {
+                payment.setStatus(request.getStatus());
+            }
+            payment.setCreatedAt(new Date());
+            if (request.getType().equals(EPaymentType.TRANSFER)) {
+                Optional<Account> receiver = accountRepository.findById(request.getReceiver());
+                if (ObjectUtils.isEmpty(currentAccount.getBalance()) || currentAccount.getBalance() < request.getAmount()) throw new CustomException(EError.NOT_ENOUGH_MONEY);
+                if (receiver.isEmpty()) throw new CustomException(EError.USER_NOT_EXISTED);
+                payment.setReceiver(receiver.get());
+            }
+            if (payment.getStatus().equals(EPaymentStatus.DONE) && !ObjectUtils.isEmpty(payment.getReceiver())) {
+                EditMultiAccountBalanceRequest balanceRequest = new EditMultiAccountBalanceRequest();
+                balanceRequest.setBalance(payment.getAmount());
+                balanceRequest.setSenderIds(Arrays.asList(payment.getCreatedBy().getId()));
+                balanceRequest.setReceiverIds(Arrays.asList(payment.getReceiver().getId()));
+                accountService.updateMultiAccountBalance(balanceRequest);
+            }
+            return paymentRepository.save(payment);
+        } catch (Exception e) {
+            log.error("An error occurred when create payment: {}", e.getMessage());
+            return null;
         }
-        payment.setCreatedAt(new Date());
-        if (request.getType().equals(EPaymentType.TRANSFER)) {
-            Optional<Account> receiver = accountRepository.findById(request.getReceiver());
-            if (receiver.isEmpty()) throw new CustomException(EError.USER_NOT_EXISTED);
-            payment.setReceiver(receiver.get());
-        }
-        if (payment.getStatus().equals(EPaymentStatus.DONE) && !ObjectUtils.isEmpty(payment.getReceiver())) {
-            EditMultiAccountBalanceRequest balanceRequest = new EditMultiAccountBalanceRequest();
-            balanceRequest.setBalance(payment.getAmount());
-            balanceRequest.setSenderIds(Arrays.asList(payment.getCreatedBy().getId()));
-            balanceRequest.setReceiverIds(Arrays.asList(payment.getReceiver().getId()));
-            accountService.updateMultiAccountBalance(balanceRequest);
-        }
-        return paymentRepository.save(payment);
     }
 
     public void update (EditPaymentRequest request) {

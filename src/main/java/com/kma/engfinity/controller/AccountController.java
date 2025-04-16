@@ -64,4 +64,8 @@ public class AccountController {
         return accountService.getByPhoneNumber(request.getPhoneNumbers().getFirst());
     }
 
+    @PostMapping("search-hire-history")
+    public Response<Object> searchHireHistory (@RequestBody SearchHireHistoryRequest request) {
+        return accountService.searchHireHistory(request);
+    }
 }
