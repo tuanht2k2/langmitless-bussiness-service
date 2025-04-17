@@ -1,25 +1,34 @@
 package com.kma.engfinity.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kma.common.dto.response.Response;
 import com.kma.common.entity.Account;
 import com.kma.common.enums.ERole;
 import com.kma.engfinity.DTO.request.*;
 import com.kma.engfinity.DTO.response.*;
+import com.kma.engfinity.entity.Hire;
 import com.kma.engfinity.enums.EAccountStatus;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.enums.ETransferType;
 import com.kma.engfinity.exception.CustomException;
 import com.kma.engfinity.repository.AccountRepository;
+import com.kma.engfinity.repository.HireRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000")
@@ -31,7 +40,16 @@ public class AccountService {
     ModelMapper modelMapper;
 
     @Autowired
+    ObjectMapper objectMapper;
+
+    @Autowired
     AuthService authService;
+
+    @Autowired
+    HireRepository hireRepository;
+
+    @Autowired
+    WebSocketService webSocketService;
 
     private BCryptPasswordEncoder passwordEncoder;
 
@@ -83,8 +101,9 @@ public class AccountService {
     }
 
     public ResponseEntity<?> search (SearchAccountRequest request) {
+        Account currentAccount = authService.getCurrentAccount();
         List<Account> accounts = accountRepository.search(request.getPage() * request.getPageSize(), request.getPageSize(), request.getSortBy(), request.getSortDir(), request.getKeyword(), request.getRole().name());
-        List<PublicAccountResponse> accountResponses = accounts.stream().map(this::accountToPublicAccountResponse).toList();
+        List<PublicAccountResponse> accountResponses = accounts.stream().filter(x -> !Objects.equals(x.getId(), currentAccount.getId())).map(this::accountToPublicAccountResponse).toList();
         CommonResponse<?> response = new CommonResponse<>(200, accountResponses, "Search accounts successfully!");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -127,16 +146,44 @@ public class AccountService {
     }
 
     public void updateBalance(EditAccountBalanceRequest request) {
-        Optional<Account> optionalAccount = accountRepository.findById(request.getId());
-        if (optionalAccount.isEmpty()) throw new CustomException(EError.USER_NOT_EXISTED);
-        Account account = optionalAccount.get();
-        if (request.getType().equals(ETransferType.INCOMING)) {
-            account.setBalance(account.getBalance() + request.getAmount());
-        } else {
-            if (account.getBalance() < request.getAmount()) throw new CustomException(EError.NOT_ENOUGH_MONEY);
-            account.setBalance(account.getBalance() - request.getAmount());
+        try {
+            Optional<Account> optionalAccount = accountRepository.findById(request.getId());
+            if (optionalAccount.isEmpty()) throw new CustomException(EError.USER_NOT_EXISTED);
+            Account account = optionalAccount.get();
+            if (request.getType().equals(ETransferType.INCOMING)) {
+                account.setBalance(account.getBalance() + request.getAmount());
+            } else {
+                if (account.getBalance() < request.getAmount()) throw new CustomException(EError.NOT_ENOUGH_MONEY);
+                account.setBalance(account.getBalance() - request.getAmount());
+            }
+            accountRepository.save(account);
+        } catch (Exception e) {
+            log.error("An error occurred when updateBalance: {}", e.getMessage());
         }
-        accountRepository.save(account);
+    }
+
+    @Transactional
+    public void updateMultiAccountBalance (EditMultiAccountBalanceRequest request) {
+        try {
+            log.info("updateMultiAccountBalance request: {}", objectMapper.writeValueAsString(request));
+            accountRepository.updateBalance(request.getReceiverIds(), request.getBalance(), true);
+            accountRepository.updateBalance(request.getSenderIds(), request.getBalance(), false);
+
+            for (String id : request.getReceiverIds()) {
+                String destination = "/topic/" + id + "/notifications";
+                String content = "Giao dịch: + " + request.getBalance() + " VNĐ";
+                NotificationResponse response = new NotificationResponse(content);
+                webSocketService.sendData(destination, response);
+            }
+            for (String id : request.getSenderIds()) {
+                String destination = "/topic/" + id + "/notifications";
+                String content = "Giao dịch: - " + request.getBalance() + " VNĐ";
+                NotificationResponse response = new NotificationResponse(content);
+                webSocketService.sendData(destination, response);
+            }
+        } catch (Exception e) {
+            log.error("An error occurred when updateMultiAccountBalance: {}", e.getMessage());
+        }
     }
 
     public ResponseEntity<?> becomeATeacher (EditAccountRequest request) {
@@ -179,5 +226,30 @@ public class AccountService {
         return accountRepository.findAll();
     }
 
+    public Response<Object> getByPhoneNumber (String phoneNumber) {
+        try {
+            PublicAccountResponse account = accountRepository.findPublicInfoByPhoneNumber(phoneNumber);
+            if (ObjectUtils.isEmpty(account)) throw new CustomException(EError.USER_NOT_EXISTED);
+            return Response.getResponse(200, account, "Get account successfully!");
+        } catch (Exception e) {
+            log.error("An error occurred when getByPhoneNumber: {}", e.getMessage());
+            return Response.getResponse(500, e.getMessage());
+        }
+    }
 
+    public Response<Object> searchHireHistory (SearchHireHistoryRequest request) {
+        try {
+            Account account = accountRepository.findById(request.getAccountId()).orElse(null);
+            if (ObjectUtils.isEmpty(account)) throw new CustomException(EError.USER_NOT_EXISTED);
+
+            List<Hire> hires = hireRepository.findByTeacher(request.getAccountId());
+            PublicAccountResponse response = objectMapper.convertValue(account, PublicAccountResponse.class);
+            response.setHireHistory(hires);
+
+            return Response.getResponse(200, response, "Get account successfully!");
+        } catch (Exception e) {
+            log.error("An error occurred when getByPhoneNumber: {}", e.getMessage());
+            return Response.getResponse(500, e.getMessage());
+        }
+    }
 }
