@@ -59,4 +59,9 @@ public interface AccountRepository extends JpaRepository<Account, String> {
 
     @Query("SELECT new com.kma.engfinity.DTO.response.PublicAccountResponse(a.id, a.name, a.phoneNumber, a.profileImage) FROM Account a WHERE a.phoneNumber = :phoneNumber")
     PublicAccountResponse findPublicInfoByPhoneNumber(@Param("phoneNumber") String phoneNumber);
+
+    @Query("SELECT account FROM Account account JOIN ClassMember cm ON account.id = cm.account.id WHERE cm.course.id = :courseId")
+    List<Account> findMembersByCourseId(@Param("courseId") String courseId);
+
+
 }
