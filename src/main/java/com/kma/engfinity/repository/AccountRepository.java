@@ -2,6 +2,7 @@ package com.kma.engfinity.repository;
 
 import com.kma.common.entity.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -40,4 +41,28 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     List<Account> searchByPhoneNumbers(@Param("phoneNumbers") List<String> phoneNumbers);
 
     boolean existsByIdentification(String identification);
+
+//    @Transactional
+//    @Modifying
+//    @Query(value = "UPDATE Account a SET a.balance = a.balance - :value WHERE a.id IN :accountIds")
+//    void updateBalance(@Param("accountIds") String[] accountIds, @Param("value") Long value);
+
+//    @Transactional
+    @Modifying
+    @Query(value = """
+    UPDATE accounts
+    SET balance = CASE
+        WHEN :isAddition = TRUE THEN balance + :value
+        ELSE balance - :value
+    END
+    WHERE id IN (:accountIds)
+    """, nativeQuery = true)
+    void updateBalance(@Param("accountIds") List<String> accountIds,
+                       @Param("value") Long value,
+                       @Param("isAddition") boolean isAddition);
+
+    @Query("SELECT account FROM Account account JOIN ClassMember cm ON account.id = cm.account.id WHERE cm.course.id = :courseId")
+    List<Account> findMembersByCourseId(@Param("courseId") String courseId);
+
+
 }

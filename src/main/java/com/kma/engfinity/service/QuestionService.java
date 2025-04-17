@@ -27,7 +27,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -192,7 +191,10 @@ public class QuestionService {
       throw new IllegalArgumentException("topicId không được để trống");
     }
     List<Question> questions = questionRepository.findByTopicId(request.getTopicId());
-    CommonResponse<?> response = new CommonResponse<>(200,questions,"Add question to topic successfully");
+    List<QuestionResponse> responses = questions.stream()
+        .map(QuestionConverter::toResponse)
+        .toList();
+    CommonResponse<?> response = new CommonResponse<>(200,responses,"Add question to topic successfully");
     return ResponseEntity.ok(response);
   }
 }
