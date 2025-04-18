@@ -15,8 +15,12 @@ import com.kma.engfinity.entity.Course;
 import com.kma.engfinity.entity.Message;
 import com.kma.engfinity.enums.EAccountStatus;
 import com.kma.engfinity.enums.EError;
+import com.kma.engfinity.enums.ERole;
 import com.kma.engfinity.exception.CustomException;
+import com.kma.engfinity.repository.AccountRepository;
+import com.kma.engfinity.repository.ClassMemberRepository;
 import com.kma.engfinity.repository.CourseRepository;
+import com.kma.engfinity.repository.TopicRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +48,11 @@ public class CourseService {
     private AccountService accountService;
 
     @Autowired
-    private TopicService topicService;
+    private TopicRepository topicRepository;
+
+    @Autowired
+    private AccountRepository accountRepository;
+
 
     @Autowired
     private MessageService messageService;
@@ -74,6 +82,7 @@ public class CourseService {
         List<Object[]> data = courseRepository.getCourseDetails(id);
         CourseResponse course = null;
         List<TopicResponse> topics = new ArrayList<>();
+        List<Account> accounts = accountRepository.findMembersByCourseId(id);
         for (Object[] row : data) {
             if (course == null) {
                 course = new CourseResponse();
@@ -100,9 +109,21 @@ public class CourseService {
             tag.setName((String) row[13]);
             topic.setTag(tag);
             topics.add(topic);
+
         }
+
+            List<PublicAccountResponse> members = accounts.stream().map(acc -> {
+                PublicAccountResponse res = new PublicAccountResponse();
+                res.setId(acc.getId());
+                res.setName(acc.getName());
+                res.setProfileImage(acc.getProfileImage());
+                return res;
+            }).toList();
+
         if (course == null) throw new CustomException(EError.BAD_REQUEST);
         course.setTopics(topics);
+        course.setMembers(members);
+
         CommonResponse<?> commonResponse = new CommonResponse<>(200, course, "Get course detail successfully!");
         return ResponseEntity.ok(commonResponse);
     }
@@ -149,7 +170,37 @@ public class CourseService {
             createdBy.setId(String.valueOf(row[5]));
             createdBy.setName(String.valueOf(row[6]));
             course.setCreatedBy(createdBy);
+
+            List<TopicResponse> topics = topicRepository.findByCourse(course.getId())
+                .stream()
+                .map(topic -> {
+                    TopicResponse res = new TopicResponse();
+                    res.setId(topic.getId());
+                    res.setDescription(topic.getDescription());
+                    TagResponse tagRes =new TagResponse();
+                    tagRes.setId(tagRes.getId());
+                    tagRes.setName(tagRes.getName());
+                    tagRes.setLanguage(tagRes.getLanguage());
+                    return res;
+                })
+                .toList();
+            course.setTopics(topics);
+
+            List<PublicAccountResponse> members = accountRepository.findMembersByCourseId(course.getId())
+                .stream()
+                .map(user -> {
+                    PublicAccountResponse member = new PublicAccountResponse();
+                    member.setId(user.getId());
+                    member.setProfileImage(user.getProfileImage());
+                    member.setName(user.getName());
+                    member.setRole(ERole.USER);
+                    return member;
+                })
+                .toList();
+            course.setMembers(members);
+
             return course;
+
         }).toList();
 
         CommonResponse<?> commonResponse = new CommonResponse<>(200, courses, "Search courses successfully!");

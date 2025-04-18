@@ -1,5 +1,6 @@
 package com.kma.engfinity.DTO.response;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
