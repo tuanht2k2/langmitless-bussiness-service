@@ -10,15 +10,16 @@ import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.BuyCourseRequest;
 import com.kma.engfinity.DTO.request.EditCourseRequest;
 import com.kma.engfinity.DTO.request.SearchCourseRequest;
+import com.kma.engfinity.DTO.request.StudentSearchCourseRequest;
 import com.kma.engfinity.DTO.response.*;
+import com.kma.engfinity.entity.AccountsCourses;
 import com.kma.engfinity.entity.Course;
-import com.kma.engfinity.entity.Message;
 import com.kma.engfinity.enums.EAccountStatus;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.enums.ERole;
 import com.kma.engfinity.exception.CustomException;
+import com.kma.engfinity.repository.AccountCourseRepository;
 import com.kma.engfinity.repository.AccountRepository;
-import com.kma.engfinity.repository.ClassMemberRepository;
 import com.kma.engfinity.repository.CourseRepository;
 import com.kma.engfinity.repository.TopicRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
@@ -53,9 +55,14 @@ public class CourseService {
     @Autowired
     private AccountRepository accountRepository;
 
-
     @Autowired
     private MessageService messageService;
+
+    @Autowired
+    private AccountCourseRepository accountCourseRepository;
+
+    @Autowired
+    private PaymentService paymentService;
 
     public ResponseEntity<?> create (EditCourseRequest request) {
         Account account = authService.getCurrentAccount();
@@ -132,16 +139,29 @@ public class CourseService {
         return courseRepository.findById(id).orElse(null);
     }
 
-    public ResponseEntity<?> buy (BuyCourseRequest request) {
-//        Account account = accountService.getAccountById(request.getAccountId());
-//        Course course = courseRepository.findById(request.getCourseId()).orElse(null);
-//        if (course == null) throw new CustomException(EError.BAD_REQUEST);
-//        EditAccountBalanceRequest editAccountBalanceRequest = EditAccountBalanceRequest.builder().id(request.getAccountId()).amount(course.getCost()).type(ETransferType.DEPOSIT).build();
-//        accountService.updateBalance(editAccountBalanceRequest);
-//        course.getMembers().add(account);
-//        courseRepository.save(course);
-        CommonResponse<?> commonResponse = new CommonResponse<>(200, null, "Buy course successfully!");
-        return ResponseEntity.ok(commonResponse);
+    @Transactional
+    public Response<Object> buy (BuyCourseRequest request) {
+        try {
+            Account currentAccount = authService.getCurrentAccount();
+
+            Course course = courseRepository.findById(request.getCourseId()).orElse(null);
+            if (ObjectUtils.isEmpty(course)) throw new CustomException(EError.BAD_REQUEST);
+            if (currentAccount.getBalance() < course.getCost()) throw new CustomException(EError.NOT_ENOUGH_MONEY);
+            if (accountCourseRepository.existsByAccountIdAndCourseId(currentAccount.getId(), request.getCourseId())) throw new CustomException(EError.BAD_REQUEST);
+            if (currentAccount.getId().equals(course.getCreatedBy())) throw new CustomException(EError.BAD_REQUEST);
+
+            paymentService.transfer(course.getCreatedBy(), course.getCost(), "Người dùng: " + currentAccount.getFullName() + "mua khóa học" + course.getName());
+            AccountsCourses accountsCourses = new AccountsCourses();
+            accountsCourses.setCourseId(course.getId());
+            accountsCourses.setAccountId(currentAccount.getId());
+            accountCourseRepository.save(accountsCourses);
+
+            return Response.getResponse(200, "Buy course successfully!");
+        } catch (Exception e) {
+            log.error("An error happened when buy course: {}", e.getMessage());
+            return Response.getResponse(500, e.getMessage());
+        }
+
     }
 
     public CourseResponse courseToCourseResponse (Course course) {
@@ -228,14 +248,26 @@ public class CourseService {
                     default:
                         maxCost = Constant.CoursePriceValue.FREE;
                 }
-                List<Course> courses = courseRepository.aiSearchCourse(request.getLanguage(), request.getLevel(), minCost, maxCost);
+                List<Course> courses = courseRepository.aiSearchCourse(request.getLanguage(), request.getLevel(), minCost, maxCost, null);
                 List<CommonCourseResponse> courseResponses = courses.stream().map(this::courseToCommonCourseResponse).toList();
                 response.setCourses(courseResponses);
             }
             messageService.sendChatbotMessage(response);
             return Response.getResponse(200, response,"Search course successful");
         } catch (Exception e) {
-            log.error("An error happened when search course: {}",e.getMessage());
+            log.error("An error happened when aiSearch course: {}",e.getMessage());
+            return Response.getResponse(500, e.getMessage());
+        }
+    }
+
+    public Response<Object> studentSearch (StudentSearchCourseRequest request) {
+        try {
+            List<Course> courses = courseRepository.aiSearchCourse(request.getLanguage(), request.getLevel(), request.getMinCost(), request.getMaxCost(), request.getName());
+            List<CommonCourseResponse> courseResponses = courses.stream().map(this::courseToCommonCourseResponse).toList();
+
+            return Response.getResponse(200, courseResponses,"Search course successful");
+        } catch (Exception e) {
+            log.error("An error happened when studentSearch course: {}",e.getMessage());
             return Response.getResponse(500, e.getMessage());
         }
     }
