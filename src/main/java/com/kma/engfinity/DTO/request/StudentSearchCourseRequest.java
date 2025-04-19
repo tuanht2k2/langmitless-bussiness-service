@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 public class StudentSearchCourseRequest {
     private String name;
     private String language;
-    private Integer minCost;
-    private Integer maxCost;
+    private String price;
     private Byte level;
 }

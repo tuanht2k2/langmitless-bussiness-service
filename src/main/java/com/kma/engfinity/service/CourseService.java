@@ -86,6 +86,8 @@ public class CourseService {
     }
 
     public ResponseEntity<?> getCourseDetails (String id) {
+        Account currentAccount = authService.getCurrentAccount();
+
         List<Object[]> data = courseRepository.getCourseDetails(id);
         CourseResponse course = null;
         List<TopicResponse> topics = new ArrayList<>();
@@ -131,6 +133,7 @@ public class CourseService {
         course.setTopics(topics);
         course.setMembers(members);
 
+        course.setMember(accountCourseRepository.existsByAccountIdAndCourseId(currentAccount.getId(), id) || currentAccount.getId().equals(id));
         CommonResponse<?> commonResponse = new CommonResponse<>(200, course, "Get course detail successfully!");
         return ResponseEntity.ok(commonResponse);
     }
@@ -262,7 +265,24 @@ public class CourseService {
 
     public Response<Object> studentSearch (StudentSearchCourseRequest request) {
         try {
-            List<Course> courses = courseRepository.aiSearchCourse(request.getLanguage(), request.getLevel(), request.getMinCost(), request.getMaxCost(), request.getName());
+            Integer maxCost = null;
+            Integer minCost = null;
+            switch (request.getPrice()) {
+                case Constant.CoursePrice.CHEAP:
+                    maxCost = Constant.CoursePriceValue.CHEAP;
+                    break;
+                case Constant.CoursePrice.MEDIUM:
+                    maxCost = Constant.CoursePriceValue.MEDIUM;
+                    minCost = Constant.CoursePriceValue.CHEAP;
+                    break;
+                case Constant.CoursePrice.EXPENSIVE:
+                    minCost = Constant.CoursePriceValue.MEDIUM;
+                    break;
+                default:
+                    maxCost = Constant.CoursePriceValue.FREE;
+            }
+
+            List<Course> courses = courseRepository.aiSearchCourse(request.getLanguage(), request.getLevel(), minCost, maxCost, request.getName());
             List<CommonCourseResponse> courseResponses = courses.stream().map(this::courseToCommonCourseResponse).toList();
 
             return Response.getResponse(200, courseResponses,"Search course successful");
