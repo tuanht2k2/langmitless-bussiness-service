@@ -1,5 +1,6 @@
 package com.kma.engfinity.DTO.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.Date;
@@ -17,4 +18,7 @@ public class CourseResponse {
     private PublicAccountResponse createdBy;
     private List<PublicAccountResponse> members;
     private List<TopicResponse> topics;
+
+    @JsonProperty("isMember")
+    private boolean isMember;
 }
