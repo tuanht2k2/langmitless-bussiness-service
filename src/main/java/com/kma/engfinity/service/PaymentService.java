@@ -86,4 +86,18 @@ public class PaymentService {
         if (optionalPayment.isEmpty()) throw new CustomException(EError.BAD_REQUEST);
         return optionalPayment.get();
     }
+
+    public void transfer (String receiver, Long amount, String description) {
+        try {
+            EditPaymentRequest editPaymentRequest = new EditPaymentRequest();
+            editPaymentRequest.setAmount(amount);
+            editPaymentRequest.setReceiver(receiver);
+            editPaymentRequest.setDescription(description);
+            editPaymentRequest.setStatus(EPaymentStatus.DONE);
+            editPaymentRequest.setType(EPaymentType.TRANSFER);
+            create(editPaymentRequest);
+        } catch (Exception e) {
+            log.error("An error occurred when transfer payment: {}", e.getMessage());
+        }
+    }
 }
