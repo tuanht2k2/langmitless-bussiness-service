@@ -45,11 +45,13 @@ public interface CourseRepository extends JpaRepository<Course, String> {
     AND (:level IS NULL OR c.level = :level)
     AND (:minCost IS NULL OR c.cost > :minCost)
     AND (:maxCost IS NULL OR c.cost <= :maxCost)
+    AND (:name IS NULL OR c.name LIKE CONCAT('%', :name, '%'))
     """, nativeQuery = true)
     List<Course> aiSearchCourse(
             @Param("language") String language,
             @Param("level") Byte level,
             @Param("minCost") Integer minCost,
-            @Param("maxCost") Integer maxCost
+            @Param("maxCost") Integer maxCost,
+            @Param("name") String name
     );
 }
