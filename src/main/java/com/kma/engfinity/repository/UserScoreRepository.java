@@ -18,7 +18,7 @@ public interface UserScoreRepository extends JpaRepository<UserScore, String> {
     )
     FROM UserScore us
     JOIN Question q ON us.questionId = q.id
-    JOIN Topic t ON q.topicId = t.id
+    JOIN Topic t ON q.topic.id = t.id
     JOIN Tag tg ON t.tag = tg.id
     WHERE us.userId = :userId
     GROUP BY t.id, tg.name

@@ -14,9 +14,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, String> {
 
-  @Query("select q from Question q where q.course.id = :courseId and "
+  @Query("select q from Question q where q.topic.id = :topicId and "
       + "(:questionType is null or q.questionType = :questionType)")
-  Page<Question> searchQuestion(@Param("courseId") String courseId, @Param("questionType")
+  Page<Question> searchQuestion(@Param("topicId") String topicId, @Param("questionType")
   QuestionType questionType, Pageable pageable);
 
   @NotNull

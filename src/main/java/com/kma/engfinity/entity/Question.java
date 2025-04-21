@@ -61,11 +61,10 @@ public class Question {
   private String audioSample; // Pronunciation
 
   @ManyToOne
-  @JoinColumn(name = "course_id")
-  private Course course;
+  @JoinColumn(name = "topic_id")
+  private Topic topic;
 
   @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<QuestionOption> options;
 
-  private String topicId;
 }

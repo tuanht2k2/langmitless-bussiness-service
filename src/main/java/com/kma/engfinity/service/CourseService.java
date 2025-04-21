@@ -89,6 +89,17 @@ public class CourseService {
         Account currentAccount = authService.getCurrentAccount();
 
         List<Object[]> data = courseRepository.getCourseDetails(id);
+        if (data.isEmpty()) {
+            Course course = courseRepository.findById(id).orElse(null);
+            if (ObjectUtils.isEmpty(course)) throw new CustomException(EError.BAD_REQUEST);
+            CourseResponse courseResponse = modelMapper.map(course, CourseResponse.class);
+            Account account = accountRepository.findById(course.getCreatedBy()).orElse(null);
+            if (!ObjectUtils.isEmpty(account)) {
+                courseResponse.setCreatedBy(modelMapper.map(account, PublicAccountResponse.class));
+            }
+            CommonResponse<?> commonResponse = new CommonResponse<>(200, courseResponse, "Get course detail successfully!");
+            return ResponseEntity.ok(commonResponse);
+        }
         CourseResponse course = null;
         List<TopicResponse> topics = new ArrayList<>();
         List<Account> accounts = accountRepository.findMembersByCourseId(id);
@@ -129,7 +140,6 @@ public class CourseService {
                 return res;
             }).toList();
 
-        if (course == null) throw new CustomException(EError.BAD_REQUEST);
         course.setTopics(topics);
         course.setMembers(members);
 

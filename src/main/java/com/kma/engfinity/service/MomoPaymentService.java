@@ -12,6 +12,7 @@ import com.kma.engfinity.enums.EPaymentStatus;
 import com.kma.engfinity.enums.EPaymentType;
 import com.kma.engfinity.enums.ETransferType;
 import com.kma.engfinity.utils.Encoder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class MomoPaymentService {
     @Value("${MOMO.ACCESS_KEY}")
@@ -60,7 +62,7 @@ public class MomoPaymentService {
             String orderId = PARTNER_CODE + System.currentTimeMillis();
             String requestType = "payWithMethod";
             String ipnUrl = NGROK_URL;
-            String redirectUrl = "";
+            String redirectUrl = "engfinity://";
             String rawSignature = "accessKey=" + ACCESS_KEY +
                     "&amount=" + request.getAmount() +
                     "&extraData=" + "Engfinity" +
@@ -114,24 +116,28 @@ public class MomoPaymentService {
     }
 
     public void handlePaymentResult (MomoPaymentResultResponse response) {
-        System.out.println(response.getResultCode());
+        try {
+            log.info("Momo payment result: {}", response.getResultCode());
 
-        if (response.getResultCode().equals(0)) {
-            // Update payment entity status
-            EditPaymentRequest editPaymentRequest = EditPaymentRequest.builder()
-                    .id(response.getOrderId())
-                    .status(EPaymentStatus.DONE)
-                    .build();
-            paymentService.update(editPaymentRequest);
+            if (response.getResultCode().equals(0)) {
+                // Update payment entity status
+                EditPaymentRequest editPaymentRequest = EditPaymentRequest.builder()
+                        .id(response.getOrderId())
+                        .status(EPaymentStatus.DONE)
+                        .build();
+                paymentService.update(editPaymentRequest);
 
-            // update account balance
-            Payment payment = paymentService.get(editPaymentRequest.getId());
-            EditAccountBalanceRequest editAccountBalanceRequest = EditAccountBalanceRequest.builder()
-                    .id(payment.getCreatedBy().getId())
-                    .amount(response.getAmount())
-                    .type(ETransferType.INCOMING)
-                    .build();
-            accountService.updateBalance(editAccountBalanceRequest);
+                // update account balance
+                Payment payment = paymentService.get(editPaymentRequest.getId());
+                EditAccountBalanceRequest editAccountBalanceRequest = EditAccountBalanceRequest.builder()
+                        .id(payment.getCreatedBy().getId())
+                        .amount(response.getAmount())
+                        .type(ETransferType.INCOMING)
+                        .build();
+                accountService.updateBalance(editAccountBalanceRequest);
+            }
+        } catch (Exception e) {
+            log.error("An error occurred when handlePaymentResult");
         }
     }
 

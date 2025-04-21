@@ -35,8 +35,8 @@ public class QuestionConverter {
     }
     QuestionResponse response = new QuestionResponse();
     response.setId(UUID.fromString(question.getId()));
-    if (question.getCourse() != null) {
-      response.setCourseId(UUID.fromString(question.getCourse().getId()));
+    if (question.getTopic() != null) {
+      response.setCourseId(UUID.fromString(question.getTopic().getId()));
     }
     response.setType(question.getQuestionType());
     response.setContent(question.getContent());
