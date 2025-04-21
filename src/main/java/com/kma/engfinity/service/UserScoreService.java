@@ -114,7 +114,8 @@ public class UserScoreService {
 
   }
   public ResponseEntity<?> getAverageScoreByTopic(UserScoreByTopicRequest request) {
-    List<TopicScoreResponse> scores = userScoreRepository.getUserScoreGroupedByTopic(String.valueOf(request.getUserId()));
+    List<TopicScoreResponse> scores = userScoreRepository.
+        getUserScoreGroupedByTopic(String.valueOf(request.getUserId()));
     CommonResponse<?> commonResponse = new CommonResponse<>(200, scores, "Average scores by topic fetched successfully!");
     return ResponseEntity.ok(commonResponse);
   }

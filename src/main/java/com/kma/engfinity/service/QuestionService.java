@@ -39,9 +39,6 @@ public class QuestionService {
   private QuestionRepository questionRepository;
 
   @Autowired
-  private CourseRepository courseRepository;
-
-  @Autowired
   private AuthService authService;
 
   @Autowired
@@ -59,7 +56,7 @@ public class QuestionService {
   public ResponseEntity<?> createMultipleChoice(QuestionRequest request) {
     authService.verifyTeacherRole();
 
-    Course course = courseRepository.findById(String.valueOf(request.getCourseId()))
+    Topic topic = topicRepository.findById(String.valueOf(request.getTopicId()))
         .orElseThrow(() -> new IllegalArgumentException("Khóa học không tồn tại"));
 
     if (request.getType() != QuestionType.MultipleChoice || request.getOptions() == null) {
@@ -67,7 +64,7 @@ public class QuestionService {
     }
 
     Question question = QuestionConverter.toEntity(request);
-    question.setCourse(course);
+    question.setTopic(topic);
 
     question = questionRepository.save(question);
 
@@ -87,17 +84,17 @@ public class QuestionService {
     return ResponseEntity.ok(QuestionConverter.toResponse(question));
   }
 
-  public ResponseEntity<?> createPronunciation(UUID courseId, String content,
+  public ResponseEntity<?> createPronunciation(UUID topicId, String content,
       MultipartFile audioSample) {
     authService.verifyTeacherRole();
 
-    Course course = courseRepository.findById(String.valueOf(courseId))
+    Topic topic = topicRepository.findById(String.valueOf(topicId))
         .orElseThrow(() -> new IllegalArgumentException("Khóa học không tồn tại"));
 
     Question question = new Question();
     question.setQuestionType(QuestionType.Pronunciation);
     question.setContent(content);
-    question.setCourse(course);
+    question.setTopic(topic);
 
     String audioPath = fileService.getFileUrl(audioSample);
     question.setAudioSample(audioPath);
@@ -106,10 +103,10 @@ public class QuestionService {
     return ResponseEntity.ok(QuestionConverter.toResponse(question));
   }
 
-  public ResponseEntity<?> getQuestionsByCourse(CourseQuestionRequest request) {
+  public ResponseEntity<?> getQuestionsByTopic(CourseQuestionRequest request) {
     authService.verifyTeacherRole();
-    if (request.getCourseId() == null) {
-      throw new IllegalArgumentException("courseId không được để trống");
+    if (request.getTopicId() == null) {
+      throw new IllegalArgumentException("topic không được để trống");
     }
 
     Pageable pageable = (request.getLimit() != null) ? PageRequest.of(0, request.getLimit(),
@@ -117,7 +114,7 @@ public class QuestionService {
         Pageable.unpaged();
 
     Page<Question> questions = questionRepository.searchQuestion(
-        request.getCourseId().toString(),
+        request.getTopicId().toString(),
         request.getQuestionType(),
         pageable
     );
@@ -170,21 +167,23 @@ public class QuestionService {
     return ResponseEntity.ok(QuestionConverter.toResponse(question));
   }
 
-  public ResponseEntity<?> assignQuestionToTopic(AssignQuestionToTopicRequest request){
-    Topic topic = topicRepository.findById(request.getTopicId())
-        .orElseThrow(() -> new CustomException(EError.NOT_FOUND_TOPIC));
-    List<Question> questions = questionRepository.findAllById(request.getQuestionIds());
-    if (questions.size() != request.getQuestionIds().size()) {
-      throw new CustomException(EError.NOT_FOUND_QUESTION);
-    }
+//  public ResponseEntity<?> assignQuestionToTopic(AssignQuestionToTopicRequest request) {
+//    Topic topic = topicRepository.findById(request.getTopicId())
+//        .orElseThrow(() -> new CustomException(EError.NOT_FOUND_TOPIC));
+//    List<Question> questions = questionRepository.findAllById(request.getQuestionIds());
+//    if (questions.size() != request.getQuestionIds().size()) {
+//      throw new CustomException(EError.NOT_FOUND_QUESTION);
+//    }
+//
+//    for (Question question : questions) {
+//      question.setTopicId(topic.getId());
+//    }
+//    questionRepository.saveAll(questions);
+//    CommonResponse<?> response = new CommonResponse<>(200, "",
+//        "Add question to topic successfully");
+//    return ResponseEntity.ok(response);
+//  }
 
-    for (Question question : questions) {
-      question.setTopicId(topic.getId());
-    }
-    questionRepository.saveAll(questions);
-    CommonResponse<?> response = new CommonResponse<>(200,"","Add question to topic successfully");
-    return ResponseEntity.ok(response);
-  }
   public ResponseEntity<?> getQuestionsByTopicId(TopicRequest request) {
     authService.verifyTeacherRole();
     if (request.getTopicId() == null) {
@@ -194,7 +193,8 @@ public class QuestionService {
     List<QuestionResponse> responses = questions.stream()
         .map(QuestionConverter::toResponse)
         .toList();
-    CommonResponse<?> response = new CommonResponse<>(200,responses,"Add question to topic successfully");
+    CommonResponse<?> response = new CommonResponse<>(200, responses,
+        "Add question to topic successfully");
     return ResponseEntity.ok(response);
   }
 }

@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class QuestionRequest {
 
   @NotNull
-  private UUID courseId;
+  private UUID topicId;
 
   @NotNull
   private QuestionType type;

@@ -32,15 +32,15 @@ public class QuestionController {
 
   @PostMapping(value = "/pronunciation", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<?> createPronunciation(
-      @RequestParam("courseId") UUID courseId,
+      @RequestParam("topicId") UUID topicId,
       @RequestParam("content") String content,
       @RequestParam("audioSample") MultipartFile audioSample) {
-    return questionService.createPronunciation(courseId, content, audioSample);
+    return questionService.createPronunciation(topicId, content, audioSample);
   }
 
   @PostMapping("/by-course")
   public ResponseEntity<?> getQuestionsByCourse(@RequestBody CourseQuestionRequest request) {
-    return questionService.getQuestionsByCourse(request);
+    return questionService.getQuestionsByTopic(request);
   }
 
   @DeleteMapping("/{questionId}")
@@ -62,10 +62,10 @@ public class QuestionController {
     return questionService.updatePronunciation(questionId, content, audioSample);
   }
 
-  @PostMapping("/assign-to-topic")
-  public ResponseEntity<?> assignToTopic(@RequestBody AssignQuestionToTopicRequest request) {
-    return questionService.assignQuestionToTopic(request);
-  }
+//  @PostMapping("/assign-to-topic")
+//  public ResponseEntity<?> assignToTopic(@RequestBody AssignQuestionToTopicRequest request) {
+//    return questionService.assignQuestionToTopic(request);
+//  }
   @PostMapping("/by-topic")
   public ResponseEntity<?> getQuestionsByTopic(@RequestBody TopicRequest request) {
 
