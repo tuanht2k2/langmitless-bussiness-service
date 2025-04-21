@@ -1,5 +1,6 @@
 package com.kma.engfinity.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.EditMultiAccountBalanceRequest;
 import com.kma.engfinity.DTO.request.EditPaymentRequest;
@@ -35,6 +36,9 @@ public class PaymentService {
     @Autowired
     AccountService accountService;
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     @Transactional
     public Payment create (EditPaymentRequest request) {
         try {
@@ -53,6 +57,7 @@ public class PaymentService {
                 payment.setStatus(request.getStatus());
             }
             payment.setCreatedAt(new Date());
+            log.info("payment: {}", objectMapper.writeValueAsString(payment));
             if (request.getType().equals(EPaymentType.TRANSFER)) {
                 Optional<Account> receiver = accountRepository.findById(request.getReceiver());
                 if (ObjectUtils.isEmpty(currentAccount.getBalance()) || currentAccount.getBalance() < request.getAmount()) throw new CustomException(EError.NOT_ENOUGH_MONEY);
@@ -74,11 +79,15 @@ public class PaymentService {
     }
 
     public void update (EditPaymentRequest request) {
-        Optional<Payment> optionalPayment = paymentRepository.findById(request.getId());
-        if (optionalPayment.isEmpty()) throw new CustomException(EError.BAD_REQUEST);
-        Payment payment = optionalPayment.get();
-        payment.setStatus(request.getStatus());
-        paymentRepository.save(payment);
+        try {
+            Optional<Payment> optionalPayment = paymentRepository.findById(request.getId());
+            if (optionalPayment.isEmpty()) throw new CustomException(EError.BAD_REQUEST);
+            Payment payment = optionalPayment.get();
+            payment.setStatus(request.getStatus());
+            paymentRepository.save(payment);
+        } catch (Exception e) {
+            log.error("An error occurred when update payment: {}", e.getMessage());
+        }
     }
 
     public Payment get(String id) {
