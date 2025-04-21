@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CourseQuestionRequest {
   @NotNull
-  private UUID courseId;
+  private UUID topicId;
 
   private QuestionType questionType;
 
