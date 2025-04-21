@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.Date;
+import java.util.UUID;
 
 @EntityListeners(AuditingEntityListener.class)
 @Entity
@@ -20,14 +21,20 @@ import java.util.Date;
 @Table(name = "payments")
 public class Payment {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
+    @PrePersist
+    public void ensureId() {
+        if (this.id == null || this.id.isBlank()) {
+            this.id = UUID.randomUUID().toString();
+        }
+    }
 
     @CreatedDate
     @Column(updatable = false, name = "created_at")
     private Date createdAt;
 
-    @LastModifiedDate
+//    @LastModifiedDate
     @Column(name = "updated_at")
     private Date updatedAt;
 
