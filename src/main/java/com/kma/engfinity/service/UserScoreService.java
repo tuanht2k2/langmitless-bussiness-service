@@ -1,8 +1,10 @@
 package com.kma.engfinity.service;
 
 import com.kma.engfinity.DTO.request.AnswerQuestionRequest;
+import com.kma.engfinity.DTO.request.QuestionScoreRequest;
 import com.kma.engfinity.DTO.request.UserScoreByTopicRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
+import com.kma.engfinity.DTO.response.QuestionScoreResponse;
 import com.kma.engfinity.DTO.response.TopicScoreResponse;
 import com.kma.engfinity.entity.Question;
 import com.kma.engfinity.entity.QuestionOption;
@@ -30,7 +32,7 @@ public class UserScoreService {
   @Autowired
   private FileService fileService;
 
-  public ResponseEntity<?> answerQuestion(AnswerQuestionRequest request) {
+  public ResponseEntity<?>  answerQuestion(AnswerQuestionRequest request) {
     Question question = questionRepository.findById(request.getQuestionId())
         .orElseThrow(() -> new CustomException(
             EError.NOT_FOUND_QUESTION));
@@ -50,11 +52,11 @@ public class UserScoreService {
     int score = calculateMultipleChoiceScore(request.getAnsweredText(), question.getOptions());
 
     UserScore userScore = new UserScore();
-    userScore.setUserId(request.getUserId());
+    userScore.setTopicId(request.getTopicId());
     userScore.setQuestionId(request.getQuestionId());
     userScore.setScore((float) score);
     userScore.setAnsweredText(request.getAnsweredText());
-    userScore.setPronunciationScore(0.0f); // optional
+    userScore.setPronunciationScore(0.0f);
     userScore.setCreatedAt(Instant.now());
 
     return userScore;
@@ -68,7 +70,7 @@ public class UserScoreService {
     PronunciationResult result = calculatePronunciationScore(correctTranscript, studentTranscript);
 
     UserScore userScore = new UserScore();
-    userScore.setUserId(request.getUserId());
+    userScore.setTopicId(request.getTopicId());
     userScore.setQuestionId(request.getQuestionId());
     userScore.setScore((float) result.score());
     userScore.setAnsweredText(studentTranscript);
@@ -119,4 +121,22 @@ public class UserScoreService {
     CommonResponse<?> commonResponse = new CommonResponse<>(200, scores, "Average scores by topic fetched successfully!");
     return ResponseEntity.ok(commonResponse);
   }
+
+  public ResponseEntity<?> getScoreByQuestion(QuestionScoreRequest request) {
+    UserScore userScore = userScoreRepository.findTopByTopicIdAndQuestionIdOrderByCreatedAtDesc(
+        request.getTopicId(),
+        request.getQuestionId()
+    ).orElseThrow(() -> new CustomException(EError.NOT_FOUND_QUESTION));
+
+    QuestionScoreResponse response = new QuestionScoreResponse(
+        userScore.getScore(),
+        userScore.getPronunciationScore(),
+        userScore.getAnsweredText()
+    );
+
+    CommonResponse<?> commonResponse = new CommonResponse<>(200, response, "Latest score by question fetched successfully!");
+    return ResponseEntity.ok(commonResponse);
+  }
+
+
 }

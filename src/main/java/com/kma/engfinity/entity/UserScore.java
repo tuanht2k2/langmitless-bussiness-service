@@ -40,8 +40,8 @@ public class UserScore {
   @Column(name = "created_at", updatable = false, nullable = false)
   private Instant createdAt;
 
-  @Column(name = "user_id" , nullable = false)
-  private String userId;
+  @Column(name = "topic_Id" , nullable = false)
+  private String topicId;
 
   @Column(name = "question_id",nullable = false)
   private String questionId;
