@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class AnswerQuestionRequest {
 
-  private String userId;
+  private String topicId;
   private String questionId;
   private String answeredText;
   private String audioUrl;
