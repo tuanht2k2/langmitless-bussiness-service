@@ -1,17 +1,22 @@
 package com.kma.engfinity.DTO.response;
 
-import com.kma.engfinity.enums.EMessengerType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MessengerResponse {
     private String id;
-    private List<PublicAccountResponse> members;
-    private PublicAccountResponse createdBy;
-    private Date createdAt;
+    private String name;
+    private String image;
+    private String type;
     private Date updatedAt;
-    private EMessengerType type;
+    private Date createdAt;
+    private List<MessengerMemberResponse> members;
+    private List<MessageResponse> messages;
 }
