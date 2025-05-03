@@ -8,6 +8,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 @Component
+@Slf4j
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     AccountRepository accountRepository;
@@ -40,6 +42,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         }
         if (!jwtUtil.validateToken(token)) {
             filterChain.doFilter(request,response);
+            log.error("Token is not valid, token: {}", token);
             throw new CustomException(EError.UNAUTHENTICATED);
         }
         setAuthenticationContext(token, request);

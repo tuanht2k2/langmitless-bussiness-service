@@ -7,6 +7,7 @@ import com.kma.engfinity.entity.File;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.exception.CustomException;
 import com.kma.engfinity.repository.FileRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class FileService {
     @Autowired
@@ -74,8 +76,8 @@ public class FileService {
             return String.format("https://%s.s3.amazonaws.com/%s", BUCKET_NAME, fileName);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new CustomException(EError.BAD_REQUEST);
+            log.error("An error occurred when upload S3 file: {}", e.getMessage());
+            return null;
         }
     }
 
