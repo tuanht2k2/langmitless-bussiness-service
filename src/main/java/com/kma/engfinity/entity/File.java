@@ -1,6 +1,5 @@
 package com.kma.engfinity.entity;
 
-import com.kma.common.entity.Account;
 import com.kma.engfinity.enums.EFileType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,4 +24,6 @@ public class File  {
 
     @Enumerated(EnumType.STRING)
     private EFileType type;
+
+    private String messageId;
 }

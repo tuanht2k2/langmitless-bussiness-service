@@ -1,7 +1,6 @@
 package com.kma.engfinity.config;
 
 import com.kma.engfinity.redis.RedisKeyExpirationListener;
-import com.kma.engfinity.service.HireService;
 import com.kma.engfinity.service.RedisExpiredService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +21,7 @@ public class RedisConfig {
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
+
         return template;
     }
 
