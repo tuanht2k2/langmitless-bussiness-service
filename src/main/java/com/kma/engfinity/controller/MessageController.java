@@ -1,24 +1,20 @@
 package com.kma.engfinity.controller;
 
+import com.kma.common.dto.response.Response;
+import com.kma.engfinity.DTO.request.CommonGetDataRequest;
 import com.kma.engfinity.DTO.request.EditMessageRequest;
 import com.kma.engfinity.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/v1/messages")
+@RequestMapping("api/v1/business/messages")
 public class MessageController {
     @Autowired
     private MessageService messageService;
 
-//    @MessageMapping("/messages")
-//    public void create (@Payload EditMessageRequest request) throws Exception {
-//        messageService.create(request);
-//    }
+    @PostMapping("create")
+    public Response<Object> create (@ModelAttribute EditMessageRequest request) {
+        return messageService.create(request);
+    }
 }

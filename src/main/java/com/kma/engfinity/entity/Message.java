@@ -26,7 +26,7 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String messenger;
+    private String messengerId;
 
     private String createdBy;
 
@@ -41,4 +41,6 @@ public class Message {
     private Date updatedAt;
 
     private String content;
+
+    private String fileUrl;
 }
