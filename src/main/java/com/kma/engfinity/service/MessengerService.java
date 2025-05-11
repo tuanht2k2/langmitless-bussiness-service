@@ -9,7 +9,6 @@ import com.kma.engfinity.DTO.response.MessageResponse;
 import com.kma.engfinity.DTO.response.MessengerMemberResponse;
 import com.kma.engfinity.DTO.response.MessengerProperties;
 import com.kma.engfinity.DTO.response.MessengerResponse;
-import com.kma.engfinity.constants.Constant;
 import com.kma.engfinity.constants.Constant.*;
 import com.kma.engfinity.entity.AccountMessenger;
 import com.kma.engfinity.entity.Messenger;
@@ -24,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;

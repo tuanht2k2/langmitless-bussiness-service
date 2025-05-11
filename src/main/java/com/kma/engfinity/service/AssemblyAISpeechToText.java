@@ -86,6 +86,7 @@ public class AssemblyAISpeechToText {
 
     throw new RuntimeException("Transcription not completed in time.");
   }
+
   public static String submitAudio(String audioUrl) {
     RestTemplate restTemplate = new RestTemplate();
 

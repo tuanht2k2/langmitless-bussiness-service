@@ -8,4 +8,5 @@ public class EditTopicRequest {
     private String description;
     private String courseId;
     private String tagId;
+    private String type;
 }

@@ -40,4 +40,6 @@ public class Topic {
 
     @Column(nullable = false)
     private String tag;
+
+    private String type;
 }

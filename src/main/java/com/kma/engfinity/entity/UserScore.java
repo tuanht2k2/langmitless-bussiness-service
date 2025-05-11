@@ -46,6 +46,6 @@ public class UserScore {
   @Column(name = "question_id",nullable = false)
   private String questionId;
 
-
-
+  @Column(name = "user_id" , nullable = false)
+  private String userId;
 }
