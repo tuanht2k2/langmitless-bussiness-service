@@ -18,6 +18,7 @@ public class Constant {
     public static class ErrorMessage {
         public static String SUCCESS = "Success!";
         public static String BAD_REQUEST = "Bad request!";
+        public static String PERMISSION_DENIED = "Permission denied!";
         public static String SERVICE_ERROR = "Service error!";
     }
 
@@ -28,5 +29,17 @@ public class Constant {
 
     public static class RedisKey {
         public static String MESSENGER_MEMBERS = "MESSENGER_MEMBERS_";
+    }
+
+    public static class WithdrawalRequestStatus {
+        public static String INIT = "INIT";
+        public static String CANCELLED = "CANCELLED";
+        public static String REJECTED = "REJECTED";
+        public static String ACCEPTED = "ACCEPTED";
+    }
+
+    public static class OrderBy {
+        public static String DESC = "DESC";
+        public static String ASC = "ASC";
     }
 }

@@ -1,5 +1,6 @@
 package com.kma.engfinity.controller;
 
+import com.kma.common.dto.response.Response;
 import com.kma.engfinity.DTO.request.EditTagRequest;
 import com.kma.engfinity.DTO.request.SearchTagRequest;
 import com.kma.engfinity.service.TagService;
@@ -17,12 +18,12 @@ public class TagController {
     private TagService tagService;
 
     @PostMapping
-    public ResponseEntity<?> create (@RequestBody EditTagRequest request) {
+    public Response<Object> create (@RequestBody EditTagRequest request) {
         return tagService.create(request);
     }
 
     @PostMapping("search")
-    public ResponseEntity<?> search (@RequestBody SearchTagRequest request) {
+    public Response<Object> search (@RequestBody SearchTagRequest request) {
         return tagService.search(request);
     }
 }

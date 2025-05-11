@@ -1,26 +1,25 @@
 package com.kma.engfinity.service;
 
-import com.kma.engfinity.DTO.request.AssignQuestionToTopicRequest;
 import com.kma.engfinity.DTO.request.CourseQuestionRequest;
 import com.kma.engfinity.DTO.request.QuestionRequest;
 import com.kma.engfinity.DTO.request.TopicRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
 import com.kma.engfinity.DTO.response.QuestionResponse;
 import com.kma.engfinity.converter.QuestionConverter;
-import com.kma.engfinity.entity.Course;
 import com.kma.engfinity.entity.Question;
 import com.kma.engfinity.entity.QuestionOption;
 import com.kma.engfinity.entity.Topic;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.enums.QuestionType;
 import com.kma.engfinity.exception.CustomException;
-import com.kma.engfinity.repository.CourseRepository;
 import com.kma.engfinity.repository.QuestionOptionRepository;
 import com.kma.engfinity.repository.QuestionRepository;
 import com.kma.engfinity.repository.TopicRepository;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -33,24 +32,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class QuestionService {
 
-  @Autowired
-  private QuestionRepository questionRepository;
-
-  @Autowired
-  private AuthService authService;
-
-  @Autowired
-  private QuestionOptionRepository questionOptionRepository;
-  @Autowired
-  private QuestionConverter questionConverter;
-
-  @Autowired
-  private FileService fileService;
-
-  @Autowired
-  private TopicRepository topicRepository;
+  private final QuestionRepository questionRepository;
+  private final AuthService authService;
+  private final QuestionOptionRepository questionOptionRepository;
+  private final QuestionConverter questionConverter;
+  private final FileService fileService;
+  private final TopicRepository topicRepository;
 
 
   public ResponseEntity<?> createMultipleChoice(QuestionRequest request) {
@@ -98,6 +88,8 @@ public class QuestionService {
 
     String audioPath = fileService.getFileUrl(audioSample);
     question.setAudioSample(audioPath);
+    String textSample = AssemblyAISpeechToText.transcribeAudio(audioPath);
+    question.setTextSample(textSample);
 
     question = questionRepository.save(question);
     return ResponseEntity.ok(QuestionConverter.toResponse(question));
@@ -162,6 +154,9 @@ public class QuestionService {
     if (audioSample != null && !audioSample.isEmpty()) {
       String audioPath = fileService.getFileUrl(audioSample);
       question.setAudioSample(audioPath);
+
+      String textSample = AssemblyAISpeechToText.transcribeAudio(audioPath);
+      question.setTextSample(textSample);
     }
     questionRepository.save(question);
     return ResponseEntity.ok(QuestionConverter.toResponse(question));

@@ -1,51 +1,58 @@
 package com.kma.engfinity.service;
 
+import com.kma.common.dto.response.Response;
+import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.AnswerQuestionRequest;
 import com.kma.engfinity.DTO.request.QuestionScoreRequest;
 import com.kma.engfinity.DTO.request.UserScoreByTopicRequest;
 import com.kma.engfinity.DTO.response.CommonResponse;
 import com.kma.engfinity.DTO.response.QuestionScoreResponse;
 import com.kma.engfinity.DTO.response.TopicScoreResponse;
+import com.kma.engfinity.constants.Constant.*;
 import com.kma.engfinity.entity.Question;
 import com.kma.engfinity.entity.QuestionOption;
 import com.kma.engfinity.entity.UserScore;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.enums.QuestionType;
 import com.kma.engfinity.exception.CustomException;
+import com.kma.engfinity.repository.QuestionOptionRepository;
 import com.kma.engfinity.repository.QuestionRepository;
 import com.kma.engfinity.repository.UserScoreRepository;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UserScoreService {
-
-  @Autowired
-  private QuestionRepository questionRepository;
-  @Autowired
-  private UserScoreRepository userScoreRepository;
-
-  @Autowired
-  private FileService fileService;
+  private final QuestionRepository questionRepository;
+  private final UserScoreRepository userScoreRepository;
+  private final FileService fileService;
+  private final AuthService authService;
 
   public ResponseEntity<?>  answerQuestion(AnswerQuestionRequest request) {
-    Question question = questionRepository.findById(request.getQuestionId())
-        .orElseThrow(() -> new CustomException(
-            EError.NOT_FOUND_QUESTION));
-    UserScore userScore;
-    if (question.getQuestionType() == QuestionType.MultipleChoice) {
-      userScore = answerMultipleChoice(request, question);
-    } else {
-      userScore = answerPronunciation(request, question);
+    try {
+      Account account = authService.getCurrentAccount();
+
+      Question question = questionRepository.findById(request.getQuestionId())
+              .orElseThrow(() -> new CustomException(
+                      EError.NOT_FOUND_QUESTION));
+      UserScore userScore;
+      if (question.getQuestionType() == QuestionType.MultipleChoice) {
+        userScore = answerMultipleChoice(request, question);
+      } else {
+        userScore = answerPronunciation(request, question);
+      }
+      userScore.setUserId(account.getId());
+      userScoreRepository.save(userScore);
+      return ResponseEntity.ok(Response.getResponse(ErrorCode.OK, userScore, ErrorMessage.SUCCESS));
+    } catch (Exception e) {
+      return ResponseEntity.badRequest().body(e.getMessage());
     }
-    userScoreRepository.save(userScore);
-    CommonResponse<?> commonResponse = new CommonResponse<>(200, userScore,
-        "Answered and scored successfully!");
-    return ResponseEntity.ok(commonResponse);
   }
 
   private UserScore answerMultipleChoice(AnswerQuestionRequest request, Question question) {
@@ -65,9 +72,9 @@ public class UserScoreService {
   public UserScore answerPronunciation(AnswerQuestionRequest request, Question question) {
 
     String audioPath = fileService.getFileUrl(request.getAnswerFile());
-    String correctTranscript = AssemblyAISpeechToText.transcribeAudio(question.getAudioSample());
+//    String correctTranscript = AssemblyAISpeechToText.transcribeAudio(question.getAudioSample());
     String studentTranscript = AssemblyAISpeechToText.transcribeAudio(audioPath);
-    PronunciationResult result = calculatePronunciationScore(correctTranscript, studentTranscript);
+    PronunciationResult result = calculatePronunciationScore(question.getTextSample(), studentTranscript);
 
     UserScore userScore = new UserScore();
     userScore.setTopicId(request.getTopicId());
@@ -99,7 +106,7 @@ public class UserScoreService {
 
     int match = 0;
     for (int i = 0; i < Math.min(correctWords.size(), spokenWords.size()); i++) {
-      if (correctWords.get(i).equals(spokenWords.get(i))) {
+      if (correctWords.get(i).equalsIgnoreCase(spokenWords.get(i))) {
         match++;
       }
     }
