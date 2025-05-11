@@ -23,15 +23,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.*;
 
 @Slf4j
 @Service
 @AllArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class AccountService {
     @Autowired
     AccountRepository accountRepository;
@@ -145,6 +142,7 @@ public class AccountService {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @Transactional
     public void updateBalance(EditAccountBalanceRequest request) {
         try {
             Optional<Account> optionalAccount = accountRepository.findById(request.getId());
@@ -166,20 +164,23 @@ public class AccountService {
     public void updateMultiAccountBalance (EditMultiAccountBalanceRequest request) {
         try {
             log.info("updateMultiAccountBalance request: {}", objectMapper.writeValueAsString(request));
-            accountRepository.updateBalance(request.getReceiverIds(), request.getBalance(), true);
-            accountRepository.updateBalance(request.getSenderIds(), request.getBalance(), false);
-
-            for (String id : request.getReceiverIds()) {
-                String destination = "/topic/" + id + "/notifications";
-                String content = "Giao dịch: + " + request.getBalance() + " VNĐ";
-                NotificationResponse response = new NotificationResponse(content);
-                webSocketService.sendData(destination, response);
+            if (!ObjectUtils.isEmpty(request.getReceiverIds())) {
+                accountRepository.updateBalance(request.getReceiverIds(), request.getBalance(), true);
+                for (String id : request.getReceiverIds()) {
+                    String destination = "/topic/" + id + "/notifications";
+                    String content = "Giao dịch: + " + request.getBalance() + " VNĐ";
+                    NotificationResponse response = new NotificationResponse(content);
+                    webSocketService.sendData(destination, response);
+                }
             }
-            for (String id : request.getSenderIds()) {
-                String destination = "/topic/" + id + "/notifications";
-                String content = "Giao dịch: - " + request.getBalance() + " VNĐ";
-                NotificationResponse response = new NotificationResponse(content);
-                webSocketService.sendData(destination, response);
+            if (!ObjectUtils.isEmpty(request.getSenderIds())) {
+                accountRepository.updateBalance(request.getSenderIds(), request.getBalance(), false);
+                for (String id : request.getSenderIds()) {
+                    String destination = "/topic/" + id + "/notifications";
+                    String content = "Giao dịch: - " + request.getBalance() + " VNĐ";
+                    NotificationResponse response = new NotificationResponse(content);
+                    webSocketService.sendData(destination, response);
+                }
             }
         } catch (Exception e) {
             log.error("An error occurred when updateMultiAccountBalance: {}", e.getMessage());

@@ -60,6 +60,9 @@ public class Question {
   @Column(name = "audio_sample",columnDefinition = "TEXT")
   private String audioSample; // Pronunciation
 
+  @Column(name = "text_sample",columnDefinition = "TEXT")
+  private String textSample; // Pronunciation
+
   @ManyToOne
   @JoinColumn(name = "topic_id")
   private Topic topic;
