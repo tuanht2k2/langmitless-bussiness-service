@@ -14,7 +14,7 @@ public interface CourseRepository extends JpaRepository<Course, String> {
             "c.description AS course_description, c.cost AS course_cost, c.created_at AS course_created_at, " +
             "a.id AS account_id, a.name AS account_name, a.status AS account_status, a.profile_image AS account_profile_image, " +
             "t.id AS topic_id, t.description AS topic_description, " +
-            "ta.id AS tag_id, ta.name AS tag_name " +
+            "ta.id AS tag_id, ta.name AS tag_name, t.type " +
             "FROM courses c " +
             "INNER JOIN topics t ON c.id = t.course " +
             "INNER JOIN accounts a ON c.created_by = a.id " +
@@ -22,7 +22,6 @@ public interface CourseRepository extends JpaRepository<Course, String> {
             "WHERE c.id = :courseId",
             nativeQuery = true)
     List<Object[]> getCourseDetails(@Param("courseId") String courseId);
-
 
     @Query(value = "SELECT c.id, c.language, c.name, c.description, c.cost, " +
             "a.id, a.name " +

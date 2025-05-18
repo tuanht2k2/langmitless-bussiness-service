@@ -48,4 +48,10 @@ public class UserScore {
 
   @Column(name = "user_id" , nullable = false)
   private String userId;
+
+  @Column(name = "transaction_id", nullable = false)
+  private String transactionId;
+
+
+  private String audioUrl;
 }

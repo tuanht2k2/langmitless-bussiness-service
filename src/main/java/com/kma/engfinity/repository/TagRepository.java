@@ -10,8 +10,6 @@ import java.util.List;
 
 @Repository
 public interface TagRepository extends JpaRepository<Tag, String> {
-    boolean existsByName(String name);
-
     @Query(value = "SELECT * " +
             "FROM tags " +
             "WHERE language = :language " +
@@ -22,4 +20,6 @@ public interface TagRepository extends JpaRepository<Tag, String> {
             @Param("language") String language,
             @Param("name") String name
     );
+
+    boolean existsByNameAndLanguage(String name, String language);
 }

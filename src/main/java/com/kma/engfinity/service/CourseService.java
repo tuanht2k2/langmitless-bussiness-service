@@ -124,21 +124,21 @@ public class CourseService {
             TopicResponse topic = new TopicResponse();
             topic.setId((String) row[10]);
             topic.setDescription((String) row[11]);
+            topic.setType((String) row[14]);
             TagResponse tag = new TagResponse();
             tag.setId((String) row[12]);
             tag.setName((String) row[13]);
             topic.setTag(tag);
             topics.add(topic);
-
         }
 
-            List<PublicAccountResponse> members = accounts.stream().map(acc -> {
-                PublicAccountResponse res = new PublicAccountResponse();
-                res.setId(acc.getId());
-                res.setName(acc.getName());
-                res.setProfileImage(acc.getProfileImage());
-                return res;
-            }).toList();
+        List<PublicAccountResponse> members = accounts.stream().map(acc -> {
+            PublicAccountResponse res = new PublicAccountResponse();
+            res.setId(acc.getId());
+            res.setName(acc.getName());
+            res.setProfileImage(acc.getProfileImage());
+            return res;
+        }).toList();
 
         course.setTopics(topics);
         course.setMembers(members);

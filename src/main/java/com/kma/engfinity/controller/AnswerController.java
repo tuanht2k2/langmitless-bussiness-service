@@ -30,12 +30,14 @@ public class AnswerController {
   public ResponseEntity<?> answerQuestionPronunciation(
       @RequestParam("topicId") String topicId,
       @RequestParam("questionId") String questionId,
-      @RequestParam(value = "answerFile", required = false) MultipartFile answerFile
+      @RequestParam(value = "answerFile", required = false) MultipartFile answerFile,
+      @RequestParam("transactionId") String transactionId
   ) {
     AnswerQuestionRequest request = new AnswerQuestionRequest();
     request.setTopicId(topicId);
     request.setQuestionId(questionId);
     request.setAnswerFile(answerFile);
+    request.setTransactionId(transactionId);
 
     return userScoreService.answerQuestion(request);
   }

@@ -9,10 +9,10 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AnswerQuestionRequest {
-
   private String topicId;
   private String questionId;
   private String answeredText;
   private String audioUrl;
   private MultipartFile answerFile;
+  private String transactionId;
 }

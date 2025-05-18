@@ -109,6 +109,7 @@ public class AssemblyAISpeechToText {
       throw new RuntimeException("Failed to submit audio for transcription.");
     }
   }
+
   public static String transcribeAudio(String audioUrl) {
     String transcriptId = submitAudio(audioUrl);
     return getTranscription(transcriptId);

@@ -2,126 +2,60 @@ package com.kma.engfinity.service;
 
 import com.kma.common.dto.response.Response;
 import com.kma.common.entity.Account;
-import com.kma.engfinity.DTO.request.AnswerQuestionRequest;
-import com.kma.engfinity.DTO.request.QuestionScoreRequest;
-import com.kma.engfinity.DTO.request.UserScoreByTopicRequest;
-import com.kma.engfinity.DTO.response.CommonResponse;
-import com.kma.engfinity.DTO.response.QuestionScoreResponse;
-import com.kma.engfinity.DTO.response.TopicScoreResponse;
+import com.kma.engfinity.DTO.request.*;
+import com.kma.engfinity.DTO.response.*;
 import com.kma.engfinity.constants.Constant.*;
 import com.kma.engfinity.entity.Question;
-import com.kma.engfinity.entity.QuestionOption;
 import com.kma.engfinity.entity.UserScore;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.enums.QuestionType;
 import com.kma.engfinity.exception.CustomException;
-import com.kma.engfinity.repository.QuestionOptionRepository;
 import com.kma.engfinity.repository.QuestionRepository;
 import com.kma.engfinity.repository.UserScoreRepository;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
 
+import java.util.*;
+
+import com.kma.engfinity.service.interfaces.AsyncUserScoreServiceInterface;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserScoreService {
   private final QuestionRepository questionRepository;
   private final UserScoreRepository userScoreRepository;
-  private final FileService fileService;
   private final AuthService authService;
+  private final AsyncUserScoreServiceInterface asyncUserScoreService;
+  private final FileService fileService;
 
-  public ResponseEntity<?>  answerQuestion(AnswerQuestionRequest request) {
+  public ResponseEntity<?> answerQuestion(AnswerQuestionRequest request) {
     try {
       Account account = authService.getCurrentAccount();
 
       Question question = questionRepository.findById(request.getQuestionId())
               .orElseThrow(() -> new CustomException(
                       EError.NOT_FOUND_QUESTION));
-      UserScore userScore;
+
       if (question.getQuestionType() == QuestionType.MultipleChoice) {
-        userScore = answerMultipleChoice(request, question);
+        Hibernate.initialize(question.getOptions());
+        asyncUserScoreService.answerMultipleChoice(request, question.getOptions(), account.getId());
       } else {
-        userScore = answerPronunciation(request, question);
+        String audioPath = fileService.getFileUrl(request.getAnswerFile());
+        asyncUserScoreService.answerPronunciation(request, question, account.getId(), audioPath);
       }
-      userScore.setUserId(account.getId());
-      userScoreRepository.save(userScore);
-      return ResponseEntity.ok(Response.getResponse(ErrorCode.OK, userScore, ErrorMessage.SUCCESS));
+
+      return ResponseEntity.ok(Response.getResponse(ErrorCode.OK, ErrorMessage.SUCCESS));
     } catch (Exception e) {
       return ResponseEntity.badRequest().body(e.getMessage());
     }
   }
 
-  private UserScore answerMultipleChoice(AnswerQuestionRequest request, Question question) {
-    int score = calculateMultipleChoiceScore(request.getAnsweredText(), question.getOptions());
-
-    UserScore userScore = new UserScore();
-    userScore.setTopicId(request.getTopicId());
-    userScore.setQuestionId(request.getQuestionId());
-    userScore.setScore((float) score);
-    userScore.setAnsweredText(request.getAnsweredText());
-    userScore.setPronunciationScore(0.0f);
-    userScore.setCreatedAt(Instant.now());
-
-    return userScore;
-  }
-
-  public UserScore answerPronunciation(AnswerQuestionRequest request, Question question) {
-
-    String audioPath = fileService.getFileUrl(request.getAnswerFile());
-//    String correctTranscript = AssemblyAISpeechToText.transcribeAudio(question.getAudioSample());
-    String studentTranscript = AssemblyAISpeechToText.transcribeAudio(audioPath);
-    PronunciationResult result = calculatePronunciationScore(question.getTextSample(), studentTranscript);
-
-    UserScore userScore = new UserScore();
-    userScore.setTopicId(request.getTopicId());
-    userScore.setQuestionId(request.getQuestionId());
-    userScore.setScore((float) result.score());
-    userScore.setAnsweredText(studentTranscript);
-    userScore.setPronunciationScore((float) result.percentage());
-    userScore.setCreatedAt(Instant.now());
-    return userScore;
-  }
-
-
-  private int calculateMultipleChoiceScore(String answeredText, List<QuestionOption> options) {
-    for (QuestionOption option : options) {
-      if (option.isCorrect() && option.getContent().equalsIgnoreCase(answeredText)) {
-        return 10;
-      }
-    }
-    return 0;
-  }
-
-  private PronunciationResult calculatePronunciationScore(String correctAnswer, String studentTranscript) {
-    List<String> correctWords = Arrays.asList(correctAnswer.trim().toLowerCase().split("\\s+"));
-    List<String> spokenWords = Arrays.asList(studentTranscript.trim().toLowerCase().split("\\s+"));
-
-    if (correctWords.isEmpty()) {
-      return new PronunciationResult(0, 0.0);
-    }
-
-    int match = 0;
-    for (int i = 0; i < Math.min(correctWords.size(), spokenWords.size()); i++) {
-      if (correctWords.get(i).equalsIgnoreCase(spokenWords.get(i))) {
-        match++;
-      }
-    }
-
-    double percentage = (double) match / correctWords.size();
-    int score = (int) Math.round(percentage * 10);
-    double rawPercentage = Math.round(percentage * 10000.0) / 100.0;
-
-    return new PronunciationResult(score, rawPercentage);
-  }
-
-
-  public record PronunciationResult(int score, double percentage) {
-
-  }
   public ResponseEntity<?> getAverageScoreByTopic(UserScoreByTopicRequest request) {
     List<TopicScoreResponse> scores = userScoreRepository.
         getUserScoreGroupedByTopic(String.valueOf(request.getUserId()));
@@ -145,5 +79,71 @@ public class UserScoreService {
     return ResponseEntity.ok(commonResponse);
   }
 
+  public Response<Object> getTopicScoreHistory (TransactionScoreRequest request) {
+    try {
+      List<Object[]> data = userScoreRepository.getTopicScoreHistory(request.getTopicId(), request.getUserId(), request.getTransactionId());
+      if (ObjectUtils.isEmpty(data)) {
+        return Response.getResponse(ErrorCode.NOT_FOUND, ErrorMessage.NOT_FOUND);
+      }
 
+      TransactionScoreResponse transactionScore = new TransactionScoreResponse();
+      transactionScore.setTopicId(request.getTopicId());
+      transactionScore.setUserId(request.getUserId());
+      transactionScore.setTransactionId(request.getTransactionId());
+
+      Map<String, QuestionScoreResponseV2> questionsMap = new HashMap<>();
+
+      for (Object[] row : data) {
+        if (ObjectUtils.isEmpty(transactionScore.getScore())) {
+          transactionScore.setScore(Float.parseFloat(String.valueOf(row[17])));
+        }
+
+        boolean isCollected = !ObjectUtils.isEmpty(questionsMap.get(String.valueOf(row[0])));
+        QuestionScoreResponseV2 question = !isCollected ? new QuestionScoreResponseV2() : questionsMap.get(String.valueOf(row[0]));
+
+        if (!isCollected) {
+          question.setId(String.valueOf(row[0]));
+          question.setTopicId(String.valueOf(row[1]));
+          question.setType(QuestionType.valueOf(String.valueOf(row[2])));
+          question.setContent(String.valueOf(row[3]));
+          question.setAudioSample(String.valueOf(row[4]));
+          question.setTextSample(String.valueOf(row[5]));
+          question.setScore(row[12] != null ? Float.parseFloat(String.valueOf(row[12])) : 0f);
+        }
+
+        if (question.getType().equals(QuestionType.MultipleChoice)) {
+          boolean isOptionsCollected = !ObjectUtils.isEmpty(question.getOption());
+          List<QuestionOptionResponse> options = isOptionsCollected ? question.getOption() : new ArrayList<>();
+
+          QuestionOptionResponse option = new QuestionOptionResponse();
+          option.setId(row[14] != null ? UUID.fromString(String.valueOf(row[14])) : null);
+          option.setContent(String.valueOf(row[15]));
+
+          option.setCorrect(Boolean.parseBoolean(String.valueOf(row[16])));
+          options.add(option);
+          question.setOption(options);
+        }
+
+        questionsMap.put(question.getId(), question);
+      }
+
+
+      transactionScore.setQuestions(questionsMap.values().stream().toList());
+
+      return Response.getResponse(ErrorCode.OK, transactionScore, ErrorMessage.SUCCESS);
+    } catch (Exception e) {
+      log.error("An error occurred when UserScoreService.getTopicScoreHistory", e);
+      return Response.getResponse(ErrorCode.SERVICE_ERROR, ErrorMessage.SERVICE_ERROR);
+    }
+  }
+
+  public Response<Object> searchTransactionsByTopic (SearchTransactionRequest request) {
+    try {
+      List<String> transactions = userScoreRepository.searchTransactionsByTopic(request.getTopicId(), request.getUserId());
+      return Response.getResponse(ErrorCode.OK, transactions, ErrorMessage.SUCCESS);
+    } catch (Exception e) {
+      log.error("An error occurred when UserScoreService.getTransactionsByTopic", e);
+      return Response.getResponse(ErrorCode.SERVICE_ERROR, ErrorMessage.SERVICE_ERROR);
+    }
+  }
 }

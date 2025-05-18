@@ -28,7 +28,9 @@ public class TagService {
     public Response<Object> create (EditTagRequest request) {
         try {
             Account account = authService.getCurrentAccount();
-            if (tagRepository.existsByName(request.getName())) throw new CustomException(EError.BAD_REQUEST);
+            if (tagRepository.existsByNameAndLanguage(request.getName(), request.getLanguage())) {
+                return Response.getResponse(ErrorCode.BAD_REQUEST, "Từ khóa đã tồn tại, hãy kiểm tra lại!");
+            }
             Tag tag = modelMapper.map(request, Tag.class);
             tag.setCreatedBy(account.getId());
             tagRepository.save(tag);

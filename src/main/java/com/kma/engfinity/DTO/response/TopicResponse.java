@@ -9,4 +9,5 @@ public class TopicResponse extends CommonDTO{
     private String id;
     private TagResponse tag;
     private String description;
+    private String type;
 }

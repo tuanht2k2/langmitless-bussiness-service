@@ -35,7 +35,7 @@ public class Tag {
 
     private String updatedBy;
 
-    @Column(name = "name", nullable = false, unique = true)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(nullable = false)
