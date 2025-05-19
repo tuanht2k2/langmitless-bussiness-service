@@ -108,6 +108,8 @@ public class UserScoreService {
           question.setContent(String.valueOf(row[3]));
           question.setAudioSample(String.valueOf(row[4]));
           question.setTextSample(String.valueOf(row[5]));
+          question.setAnswerAudio(String.valueOf(row[10]));
+          question.setAnswer(String.valueOf(row[11]));
           question.setScore(row[12] != null ? Float.parseFloat(String.valueOf(row[12])) : 0f);
         }
 

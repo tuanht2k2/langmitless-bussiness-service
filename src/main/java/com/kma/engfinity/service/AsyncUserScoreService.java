@@ -58,7 +58,7 @@ public class AsyncUserScoreService implements AsyncUserScoreServiceInterface {
             userScore.setUserId(accountId);
             userScore.setTransactionId(request.getTransactionId());
             userScore.setAudioUrl(audioPath);
-
+            userScoreRepository.save(userScore);
         } catch (Exception e) {
             log.error("An error occurred when UserScoreService.answerPronunciation", e);
         }
@@ -68,7 +68,7 @@ public class AsyncUserScoreService implements AsyncUserScoreServiceInterface {
         try {
             LevenshteinDistance ld = new LevenshteinDistance();
             int distance = ld.apply(correctAnswer.toUpperCase(), studentTranscript.toUpperCase());
-            return (1 - ((float) distance / Math.max(correctAnswer.length(), studentTranscript.length()))) * 100;
+            return (1 - ((float) distance / Math.max(correctAnswer.length(), studentTranscript.length()))) * 10;
         } catch (Exception e) {
             log.error("An error occurred when UserScoreService.calculatePronunciationScore", e);
             return 0.0f;

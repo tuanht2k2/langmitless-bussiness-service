@@ -17,6 +17,8 @@ public class QuestionScoreResponseV2 {
     private String content;
     private String audioSample;
     private String textSample;
+    private String answer;
+    private String answerAudio;
     private List<QuestionOptionResponse> option;
     private Float score;
 }
