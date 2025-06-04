@@ -78,8 +78,8 @@ public class OpenAIService {
             OpenAiResponse response = restTemplate.postForObject(API_URL + API_KEY, openAiRequest, OpenAiResponse.class);
 
             if (response != null && response.getCandidates() != null && !response.getCandidates().isEmpty()) {
-                OpenAiResponse.Candidate candidate = response.getCandidates().getFirst();
-                ChatbotResponse chatbotResponse = new ChatbotResponse(candidate.getContent().getParts().getFirst().getText(), Arrays.asList(objectMapper.convertValue(courseDto, CommonCourseResponse.class)));
+                OpenAiResponse.Candidate candidate = response.getCandidates().get(0);
+                ChatbotResponse chatbotResponse = new ChatbotResponse(candidate.getContent().getParts().get(0).getText(), Arrays.asList(objectMapper.convertValue(courseDto, CommonCourseResponse.class)));
                 messageService.sendChatbotMessage(chatbotResponse);
                 return Response.getResponse(200, "Successfully!");
             }

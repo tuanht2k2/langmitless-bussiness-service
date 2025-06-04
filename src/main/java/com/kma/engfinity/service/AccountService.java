@@ -6,6 +6,8 @@ import com.kma.common.entity.Account;
 import com.kma.common.enums.ERole;
 import com.kma.engfinity.DTO.request.*;
 import com.kma.engfinity.DTO.response.*;
+import com.kma.engfinity.constants.Constant.ErrorMessage;
+import com.kma.engfinity.constants.Constant.ErrorCode;
 import com.kma.engfinity.entity.Hire;
 import com.kma.engfinity.enums.EAccountStatus;
 import com.kma.engfinity.enums.EError;
@@ -249,7 +251,24 @@ public class AccountService {
 
             return Response.getResponse(200, response, "Get account successfully!");
         } catch (Exception e) {
-            log.error("An error occurred when getByPhoneNumber: {}", e.getMessage());
+            log.error("An error occurred when searchHireHistory: {}", e.getMessage());
+            return Response.getResponse(500, e.getMessage());
+        }
+    }
+
+    public Response<Object> block (EditAccountBlockedRequest request) {
+        try {
+            Account account = accountRepository.findById(request.getAccountId()).orElse(null);
+            if (ObjectUtils.isEmpty(account))
+                return Response.getResponse(ErrorCode.BAD_REQUEST, "Account is not existed!");
+            if (!account.getRole().equals(ERole.ADMIN))
+                return Response.getResponse(ErrorCode.UNAUTHORIZED, ErrorMessage.UNAUTHORIZED);
+
+            account.setBlockedUntil(request.getBlockedUntil());
+
+            return Response.getResponse(200, ErrorMessage.SUCCESS);
+        } catch (Exception e) {
+            log.error("An error occurred when block: {}", e.getMessage());
             return Response.getResponse(500, e.getMessage());
         }
     }

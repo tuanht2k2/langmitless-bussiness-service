@@ -1,7 +1,6 @@
 package com.kma.engfinity.service;
 
 import com.kma.common.constant.Constant;
-import com.kma.common.dto.request.AiResponse;
 import com.kma.common.dto.request.AiSearchCourseRequest;
 import com.kma.common.dto.response.ChatbotResponse;
 import com.kma.common.dto.response.CommonCourseResponse;
@@ -22,6 +21,8 @@ import com.kma.engfinity.repository.AccountCourseRepository;
 import com.kma.engfinity.repository.AccountRepository;
 import com.kma.engfinity.repository.CourseRepository;
 import com.kma.engfinity.repository.TopicRepository;
+import com.kma.engfinity.constants.Constant.ErrorCode;
+import com.kma.engfinity.constants.Constant.ErrorMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,12 +88,14 @@ public class CourseService {
 
     public ResponseEntity<?> getCourseDetails (String id) {
         Account currentAccount = authService.getCurrentAccount();
+        Boolean isMember = accountCourseRepository.existsByAccountIdAndCourseId(currentAccount.getId(), id);
 
         List<Object[]> data = courseRepository.getCourseDetails(id);
         if (data.isEmpty()) {
             Course course = courseRepository.findById(id).orElse(null);
             if (ObjectUtils.isEmpty(course)) throw new CustomException(EError.BAD_REQUEST);
             CourseResponse courseResponse = modelMapper.map(course, CourseResponse.class);
+            courseResponse.setMember(isMember);
             Account account = accountRepository.findById(course.getCreatedBy()).orElse(null);
             if (!ObjectUtils.isEmpty(account)) {
                 courseResponse.setCreatedBy(modelMapper.map(account, PublicAccountResponse.class));
@@ -142,8 +145,8 @@ public class CourseService {
 
         course.setTopics(topics);
         course.setMembers(members);
+        course.setMember(isMember);
 
-        course.setMember(accountCourseRepository.existsByAccountIdAndCourseId(currentAccount.getId(), id) || currentAccount.getId().equals(id));
         CommonResponse<?> commonResponse = new CommonResponse<>(200, course, "Get course detail successfully!");
         return ResponseEntity.ok(commonResponse);
     }
@@ -299,6 +302,17 @@ public class CourseService {
         } catch (Exception e) {
             log.error("An error happened when studentSearch course: {}",e.getMessage());
             return Response.getResponse(500, e.getMessage());
+        }
+    }
+
+    public Response<Object> getMembers (String courseId) {
+        try {
+            List<PublicAccountResponse> members = courseRepository.getMembers(courseId);
+
+            return Response.getResponse(ErrorCode.OK, members, ErrorMessage.SUCCESS);
+        } catch (Exception e) {
+            log.error("An error happened when getMembers: {}",e.getMessage());
+            return Response.getResponse(ErrorCode.SERVICE_ERROR, ErrorMessage.SERVICE_ERROR);
         }
     }
 }

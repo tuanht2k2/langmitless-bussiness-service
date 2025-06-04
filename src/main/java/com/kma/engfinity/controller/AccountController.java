@@ -61,11 +61,16 @@ public class AccountController {
 
     @PostMapping("find-by-phone")
     public Response<Object> findByPhone (@RequestBody SearchAccountByPhoneNumbersRequest request) {
-        return accountService.getByPhoneNumber(request.getPhoneNumbers().getFirst());
+        return accountService.getByPhoneNumber(request.getPhoneNumbers().get(0));
     }
 
     @PostMapping("search-hire-history")
     public Response<Object> searchHireHistory (@RequestBody SearchHireHistoryRequest request) {
         return accountService.searchHireHistory(request);
+    }
+
+    @PostMapping("block")
+    public Response<Object> block (@RequestBody EditAccountBlockedRequest request) {
+        return accountService.block(request);
     }
 }

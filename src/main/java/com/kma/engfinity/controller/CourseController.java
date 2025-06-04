@@ -2,10 +2,7 @@ package com.kma.engfinity.controller;
 
 import com.kma.common.dto.request.AiSearchCourseRequest;
 import com.kma.common.dto.response.Response;
-import com.kma.engfinity.DTO.request.BuyCourseRequest;
-import com.kma.engfinity.DTO.request.EditCourseRequest;
-import com.kma.engfinity.DTO.request.SearchCourseRequest;
-import com.kma.engfinity.DTO.request.StudentSearchCourseRequest;
+import com.kma.engfinity.DTO.request.*;
 import com.kma.engfinity.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -50,5 +47,10 @@ public class CourseController {
     @PostMapping("student-search")
     public Response<Object> studentSearch (@RequestBody StudentSearchCourseRequest request) {
         return courseService.studentSearch(request);
+    }
+
+    @PostMapping("get-members")
+    public Response<Object> getMembers (@RequestBody CommonGetDataRequest request) {
+        return courseService.getMembers(request.getId());
     }
 }

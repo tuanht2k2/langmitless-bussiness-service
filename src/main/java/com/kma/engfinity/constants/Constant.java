@@ -11,6 +11,7 @@ public class Constant {
 
     public static class ErrorCode {
         public static Integer OK = 200;
+        public static Integer UNAUTHORIZED = 205;
         public static Integer BAD_REQUEST = 400;
         public static Integer NOT_FOUND = 404;
         public static Integer SERVICE_ERROR = 500;
@@ -18,6 +19,7 @@ public class Constant {
 
     public static class ErrorMessage {
         public static String SUCCESS = "Success!";
+        public static String UNAUTHORIZED = "Unauthorized!";
         public static String BAD_REQUEST = "Bad request!";
         public static String NOT_FOUND = "Data not found!";
         public static String PERMISSION_DENIED = "Permission denied!";

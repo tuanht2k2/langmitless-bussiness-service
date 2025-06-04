@@ -1,5 +1,6 @@
 package com.kma.engfinity.repository;
 
+import com.kma.engfinity.DTO.response.PublicAccountResponse;
 import com.kma.engfinity.entity.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -53,4 +54,14 @@ public interface CourseRepository extends JpaRepository<Course, String> {
             @Param("maxCost") Integer maxCost,
             @Param("name") String name
     );
+
+    @Query(value = """
+        SELECT new com.kma.engfinity.DTO.response.PublicAccountResponse(a.id, a.name, a.phoneNumber, a.profileImage) FROM Course c
+        JOIN AccountsCourses ac
+        ON c.id = ac.courseId
+        JOIN Account a
+        ON a.id = ac.accountId
+        WHERE c.id = :courseId
+    """)
+    List<PublicAccountResponse> getMembers(@Param("courseId") String courseId);
 }
