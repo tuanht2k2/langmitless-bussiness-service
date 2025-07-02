@@ -73,4 +73,14 @@ public class AccountController {
     public Response<Object> block (@RequestBody EditAccountBlockedRequest request) {
         return accountService.block(request);
     }
+
+    @PostMapping("portal-search")
+    public Response<Object> search (@RequestBody CommonGetDataRequest request) {
+        return accountService.portalSearch(request.getId());
+    }
+
+//    @PostMapping("block")
+//    public Response<Object> block (@RequestBody BlockAccountRequest request) {
+//        return accountService.block(request);
+//    }
 }

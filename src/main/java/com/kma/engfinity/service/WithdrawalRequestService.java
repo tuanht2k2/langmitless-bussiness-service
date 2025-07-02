@@ -97,12 +97,12 @@ public class WithdrawalRequestService implements WithdrawalRequestServiceInterfa
                             Arrays.asList(WithdrawalRequestStatus.CANCELLED).contains(withdrawalRequest.getStatus()))) {
 
                 if (request.getStatus().equals(WithdrawalRequestStatus.ACCEPTED)) {
-                    if (request.getImage() == null) {
-                        return Response.getResponse(ErrorCode.BAD_REQUEST, "Withdraw request image is empty");
-                    }
+//                    if (request.getImage() == null) {
+//                        return Response.getResponse(ErrorCode.BAD_REQUEST, "Withdraw request image is empty");
+//                    }
                     withdrawalRequest.setProcessedBy(account.getId());
-                    String fileUrl = fileService.getFileUrl(request.getImage());
-                    withdrawalRequest.setImageUrl(fileUrl);
+//                    String fileUrl = fileService.getFileUrl(request.getImage());
+//                    withdrawalRequest.setImageUrl(fileUrl);
                 }
                 if (!ObjectUtils.isEmpty(request.getAdminNote())) {
                     withdrawalRequest.setAdminNote(request.getAdminNote());

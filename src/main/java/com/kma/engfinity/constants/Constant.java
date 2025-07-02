@@ -56,4 +56,8 @@ public class Constant {
         public static String TRUE = "TRUE";
         public static String FALSE = "FALSE";
     }
+
+    public static class MockConstant {
+        public static String USER_NAME = "Đinh Công Tuấn";
+    }
 }

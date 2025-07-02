@@ -64,4 +64,6 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     List<Account> findMembersByCourseId(@Param("courseId") String courseId);
 
 
+    @Query("SELECT a FROM Account a WHERE a.name like %:name%")
+    List<Account> searchByName(@Param("name") String name);
 }

@@ -21,6 +21,7 @@ public class WithdrawalResponse {
     private String adminNote;
     private String imageUrl;
     private PublicAccountResponse processedBy;
+    private String qrUrl;
 
     public WithdrawalResponse(String id, Date createdAt, Date updatedAt, String creatorId, String creatorName, String creatorProfileImage, Long amount, String status, String description, String adminNote, String imageUrl, String processorId, String processorName, String processorProfileImage) {
         this.id = id;

@@ -4,16 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kma.common.dto.response.ChatbotResponse;
 import com.kma.common.dto.response.CommonCourseResponse;
 import com.kma.common.dto.response.Response;
+import com.kma.common.entity.Account;
 import com.kma.engfinity.DTO.request.AskChatbotRequest;
 import com.kma.engfinity.DTO.request.OpenAiRequest;
-import com.kma.engfinity.DTO.response.CourseResponse;
-import com.kma.engfinity.DTO.response.OpenAiResponse;
-import com.kma.engfinity.DTO.response.PublicAccountResponse;
-import com.kma.engfinity.DTO.response.TopicResponse;
+import com.kma.engfinity.DTO.response.*;
+import com.kma.engfinity.constants.Constant;
 import com.kma.engfinity.entity.Course;
 import com.kma.engfinity.entity.Topic;
 import com.kma.engfinity.enums.EError;
 import com.kma.engfinity.exception.CustomException;
+import com.kma.engfinity.repository.AccountRepository;
 import com.kma.engfinity.repository.CourseRepository;
 import com.kma.engfinity.repository.TopicRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -56,14 +57,23 @@ public class OpenAIService {
     @Autowired
     MessageService messageService;
 
+    @Autowired
+    AccountRepository accountRepository;
+
     public Response<Object> askAboutCourse(AskChatbotRequest request) {
         try {
             Course course = courseRepository.findById(request.getCourseId()).orElse(null);
             if (ObjectUtils.isEmpty(course)) {
                 throw new CustomException(EError.BAD_REQUEST);
             }
+            String createdBy = course.getCreatedBy();
+            Account account = accountRepository.findById(createdBy).orElse(null);
+            String createdByName = ObjectUtils.isEmpty(account) ? Constant.MockConstant.USER_NAME : account.getName();
+
             course.setCreatedBy(null);
-            CourseResponse courseDto = objectMapper.convertValue(course, CourseResponse.class);
+
+            AiCourseDTO courseDto = objectMapper.convertValue(course, AiCourseDTO.class);
+            courseDto.setCreatedByName(createdByName);
             List<Topic> topics = topicRepository.findByCourse(course.getId());
             courseDto.setTopics(topics.stream().map(this::topicToTopicResponse).toList());
 
@@ -72,7 +82,7 @@ public class OpenAIService {
                     .append(request.getMessage())
                     .append(", Dữ liệu của ứng dụng: ")
                     .append(courseString)
-                    .append(",(Đơn vị tiền tệ là VNĐ), Dựa vào câu hỏi và các trường dữ liệu mà ứng dụng cung cấp, hãy giúp người dùng trả lời");
+                    .append(",(Đơn vị tiền tệ là VNĐ), Dựa vào câu hỏi và các trường dữ liệu mà ứng dụng cung cấp, hãy giúp người dùng trả lời, với cương vị bạn là người quản trị hệ thống");
 
             OpenAiRequest openAiRequest = generateOpenAiRequest(prompt.toString());
             OpenAiResponse response = restTemplate.postForObject(API_URL + API_KEY, openAiRequest, OpenAiResponse.class);

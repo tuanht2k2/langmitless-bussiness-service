@@ -266,6 +266,9 @@ public class CourseService {
                 }
                 List<Course> courses = courseRepository.aiSearchCourse(request.getLanguage(), request.getLevel(), minCost, maxCost, null);
                 List<CommonCourseResponse> courseResponses = courses.stream().map(this::courseToCommonCourseResponse).toList();
+                if (ObjectUtils.isEmpty(courseResponses)) {
+                    response.setMessage("Xin lỗi, hiện tại không có khóa học phù hợp!");
+                }
                 response.setCourses(courseResponses);
             }
             messageService.sendChatbotMessage(response);

@@ -28,7 +28,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -62,7 +61,7 @@ public class MomoPaymentService {
             String orderId = PARTNER_CODE + System.currentTimeMillis();
             String requestType = "payWithMethod";
             String ipnUrl = NGROK_URL;
-            String redirectUrl = "engfinity://";
+            String redirectUrl = "https://www.facebook.com/";
             String rawSignature = "accessKey=" + ACCESS_KEY +
                     "&amount=" + request.getAmount() +
                     "&extraData=" + "Engfinity" +

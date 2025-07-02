@@ -90,7 +90,7 @@ public class OtpService implements OtpServiceInterface {
         String otp = genOtp();
         emailStatus.setOtp(passwordEncoder.encode(otp));
         String emailBody = "Mã OTP chuyển tiền của bạn là: " + otp +" , mã sẽ có hiệu lực trong 5p, không cung cấp mã cho bất kỳ ai";
-        String emailSubject = "[Langmitless - Mã xác nhận chuyển tiền]";
+        String emailSubject = "[Langmitless - Mã xác nhận]";
         mailSenderService.sendEmail(emailStatus.getEmail(), emailSubject, emailBody);
         emailStatusRepository.save(emailStatus);
     }

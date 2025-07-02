@@ -272,4 +272,30 @@ public class AccountService {
             return Response.getResponse(500, e.getMessage());
         }
     }
+
+    public Response<Object> portalSearch (String name) {
+        try {
+            List<Account> accounts = accountRepository.searchByName(name);
+            return Response.getResponse(ErrorCode.OK, accounts, ErrorMessage.SUCCESS);
+        } catch (Exception e) {
+            log.error("An error occurred when portalSearch: ", e);
+            return Response.getResponse(ErrorCode.SERVICE_ERROR, ErrorMessage.SERVICE_ERROR);
+        }
+    }
+
+//    public Response<Object> block (BlockAccountRequest request) {
+//        try {
+//            Account account = accountRepository.findById(request.getAccountId()).orElse(null);
+//            if (ObjectUtils.isEmpty(account)) {
+//                return Response.getResponse(ErrorCode.BAD_REQUEST, "Account is not existed!");
+//            }
+//
+//            account.setBlockedUntil(request.getBlockUntil());
+//            accountRepository.save(account);
+//            return Response.getResponse(ErrorCode.OK, ErrorMessage.SUCCESS);
+//        } catch (Exception e) {
+//            log.error("An error occurred when portal search: ", e);
+//            return Response.getResponse(ErrorCode.SERVICE_ERROR, ErrorMessage.SERVICE_ERROR);
+//        }
+//    }
 }
